@@ -20,34 +20,25 @@ let inline (~%) fields = createObj fields
 let makeOpts (f: 'T->unit) =
     let opts = createEmpty<'T> in f opts; opts
 
-let timeStep = 1. / 60.
-let mutable N = 20
-let mutable array: float[] option = None
-
-let interval (world: P2.World) () =
+let fillAndSendArray (world: P2.World, array: float[]) =
+    let timeStep = array.[0]
     world.step(timeStep)
-    match array with
-    | Some ar ->
-        for i = 0 to (world.bodies.Length - 1) do
-            let b = world.bodies.[i]
-            ar.[3 * i + 0] <- b.position.[0]
-            ar.[3 * i + 1] <- b.position.[1]
-            ar.[3 * i + 2] <- b.angle
-        // Send data back to the main thread
-        self?postMessage(ar, [|ar?buffer|]) |> ignore
-        array <- None
-    | None -> ()
+    for i = 0 to (world.bodies.Length - 1) do
+        let b = world.bodies.[i]
+        array.[3 * i + 1] <- b.position.[0]
+        array.[3 * i + 2] <- b.position.[1]
+        array.[3 * i + 3] <- b.angle
+    // Send data back to the main thread
+    self?postMessage(array, [|array?buffer|]) |> ignore
 
 let createWorld(initOpts: InitOptions) =
     let world = P2.World(%["gravity" ==> (0, -5)])
-
     // Ground plane
     let planeShape = P2.Plane()
     let groundBody = P2.Body(makeOpts(fun o ->
         o.mass <- Some 0.))
     groundBody.addShape(planeShape)
     world.addBody(groundBody)
-
     // Create N boxes
     for i = 0 to (initOpts.N-1) do
         let boxBody = P2.Body(makeOpts(fun o ->
@@ -63,9 +54,13 @@ let createWorld(initOpts: InitOptions) =
         world.addBody(boxBody)
     world
 
-self?onmessage <- fun (ev: Browser.MessageEvent) ->
-    match ev.data with
-    | :? (float array) as ar -> array <- Some ar
-    | _ ->
-        let world = createWorld(ev.data :?> InitOptions)
-        setInterval(interval world, timeStep * 1000.)
+let init() =
+    let mutable world = None
+    self?onmessage <- fun (ev: Browser.MessageEvent) ->
+        match ev.data with
+        | :? (float array) as ar ->
+            fillAndSendArray(world.Value, ar)
+        | _ ->
+            world <- createWorld(ev.data :?> InitOptions) |> Some
+
+init()
