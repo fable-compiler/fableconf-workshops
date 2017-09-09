@@ -72,14 +72,16 @@ let init() =
     let data = Array.zeroCreate (N * 3 + 1) |> Some |> ref
     let worker = initWorker(workerUrl, data)
     let ctx, w, h = initCanvas()
-    let rec animate last t =
+    let rec animate prevDiff last t =
         match !data with
         | Some ar when ar.[0] > 0. -> render(ctx, w, h, ar)
         | _ -> ()
-        // TODO: Don't use timestep if difference is to big,
+        let diff = t - last
+        // Don't use timestep if difference is to big,
         // for example when user comes back from another tab
-        sendBuffer(worker, data, t - last)
-        window.requestAnimationFrame(FrameRequestCallback(animate t)) |> ignore
-    animate 0. 0.
+        if diff < prevDiff * 10. then
+            sendBuffer(worker, data, t - last)
+        window.requestAnimationFrame(FrameRequestCallback(animate diff t)) |> ignore
+    animate 0. 0. 0.
 
 init()
