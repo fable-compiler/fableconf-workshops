@@ -6,7 +6,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Shared
 
-let [<Global>] self: obj = jsNative
+let [<Global>] self: Browser.Worker = jsNative
 let [<Global>] setInterval(f: unit->unit, ms: float): unit = jsNative
 
 // Syntax helpers
@@ -23,7 +23,7 @@ let fillAndSendArray (world: P2.World, array: float[]) =
         array.[3 * i + 2] <- b.position.[1]
         array.[3 * i + 3] <- b.angle
     // Send data back to the main thread
-    self?postMessage(array, [|array?buffer|]) |> ignore
+    Util.transferArray array self
 
 let createWorld(initOpts: Init.Options) =
     let world = P2.World(%["gravity" ==> (0, -5)])
@@ -50,8 +50,9 @@ let createWorld(initOpts: Init.Options) =
 
 let init() =
     let world = createWorld(Init.options)
-    self?onmessage <- fun (ev: Browser.MessageEvent) ->
+    self.onmessage <- (fun ev ->
         let ar = ev.data :?> float[]
         fillAndSendArray(world, ar)
+        null)
 
 init()

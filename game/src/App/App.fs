@@ -27,7 +27,7 @@ and sendBuffer(worker: Worker, dataRef: float[] option ref, timestep: float) =
     match !dataRef with
     | Some ar when timestep > 0. ->
         ar.[0] <- timestep / 1000.
-        worker.postMessage(ar, [|ar?buffer|])
+        Util.transferArray ar worker
         dataRef := None
     | _ -> ()
 
