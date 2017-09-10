@@ -38,11 +38,11 @@ type Model(boxes) =
 type Msg =
     | Physics of float[]
 
-let initModel(): IModel =
+let initModel() =
     let boxes = Array.init Init.N (fun _ -> Box(0.,0.,0.))
-    upcast Model(boxes)
+    Model(boxes) :> IModel, []
 
-let update (model: IModel) (msg: Msg) =
+let update (msg: Msg) (model: IModel) =
     let model = model :?> Model
     match msg with
     | Physics data ->
@@ -53,7 +53,7 @@ let update (model: IModel) (msg: Msg) =
             box.X_     <- data.[i * 3 + 1]
             box.Y_     <- data.[i * 3 + 2]
             box.Angle_ <- data.[i * 3 + 3]
-    model //, []
+    model :> IModel, []
 
 let initCanvas() =
     let canvas = document.getElementsByTagName_canvas().[0]
@@ -74,51 +74,39 @@ let drawBodies(ctx: CanvasRenderingContext2D, model: IModel) =
         ctx.stroke()
         ctx.restore()
 
-let render(ctx: CanvasRenderingContext2D, canvasWidth: float, canvasHeight: float, model: IModel) =
-    // Clear the canvas
-    ctx.clearRect(0., 0., canvasWidth, canvasHeight)
-    // Transform the canvas
-    // Note that we need to flip the y axis since Canvas pixel coordinates
-    // goes from top to bottom, while physics does the opposite.
-    ctx.save()
-    // Translate to the center
-    ctx.translate(canvasWidth / 2., canvasHeight / 2.)
-    // Zoom in and flip y axis
-    ctx.scale(Init.canvasZoom, -Init.canvasZoom)
-    // Draw all bodies
-    drawBodies(ctx, model)
-    // Restore transform
-    ctx.restore()
+let render(ctx: CanvasRenderingContext2D, canvasWidth: float, canvasHeight: float) (model: IModel) _ =
+    if model.Initialized then
+        // Clear the canvas
+        ctx.clearRect(0., 0., canvasWidth, canvasHeight)
+        // Transform the canvas
+        // Note that we need to flip the y axis since Canvas pixel coordinates
+        // goes from top to bottom, while physics does the opposite.
+        ctx.save()
+        // Translate to the center
+        ctx.translate(canvasWidth / 2., canvasHeight / 2.)
+        // Zoom in and flip y axis
+        ctx.scale(Init.canvasZoom, -Init.canvasZoom)
+        // Draw all bodies
+        drawBodies(ctx, model)
+        // Restore transform
+        ctx.restore()
+
+open Elmish
+open Elmish.Worker
 
 let init() =
     // Data array. Contains all our data we need for rendering: a 2D position and an angle per body.
     // It will be sent back and forth from the main thread and the worker thread. When
     // it's sent from the worker, it's filled with position data of all bodies.
-    let dataRef = Array.zeroCreate (Init.N * 3 + 1) |> Some |> ref
-
-    let mutable model = initModel()
-    let worker = Worker.Create(Init.workerURL)
-    observeWorker worker
-    |> Observable.add (fun ar ->
-        model <- update model (Physics ar)
-        dataRef := Some ar)
-
+    let buffer = Array.zeroCreate (Init.N * 3 + 1)
     let ctx, w, h = initCanvas()
-    let rec animate prevTimestep last t =
-        if model.Initialized then
-            render(ctx, w, h, model)
-        // Don't use timestep if difference is too big,
-        // for example when user comes back from another tab
-        let timestep = t - last
-        if timestep < prevTimestep * 10. then
-            match !dataRef with
-            | Some ar when timestep > 0. ->
-                ar.[0] <- timestep / 1000.
-                transferArray ar worker
-                dataRef := None
-            | _ -> ()
-        window.requestAnimationFrame(FrameRequestCallback(animate timestep t)) |> ignore
-    // Start animation loop
-    animate 0. 0. 0.
+
+    Program.mkProgram initModel update (render (ctx, w, h))
+    |> Program.withPhysicsWorker Init.workerURL buffer Physics (fun ts buf ->
+        buf.[0] <- ts / 1000.; buf)
+    // #if DEBUG
+    // |> Program.withDebugger
+    // #endif
+    |> Program.run
 
 init()
