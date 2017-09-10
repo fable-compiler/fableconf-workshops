@@ -1,6 +1,17 @@
 module Admin.User.Index.Types
 
-type Model = string
+open Lenses
+
+type Model =
+    { Users : Shared.Types.Users list }
+
+    static member Empty =
+        { Users = [] }
+
+    static member UsersLens =
+        { Get = fun (r : Model) -> r.Users
+          Set = fun v (r : Model) -> { r with Users = v } }
 
 type Msg =
-| ChangeStr of string
+    | ChangeStr of string
+    | FetchUsers

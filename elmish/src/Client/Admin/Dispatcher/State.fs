@@ -5,7 +5,7 @@ open Types
 
 let init () : Model =
     { Index = Admin.Index.State.init ()
-      UserIndex = Admin.User.Index.State.init () }
+      UserIndex = Admin.User.Index.Types.Model.Empty }
 
 let update msg model =
     match msg with

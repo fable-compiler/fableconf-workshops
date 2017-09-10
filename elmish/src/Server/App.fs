@@ -18,7 +18,7 @@ staticOptions.index <- Some !^"index.html"
 let output = resolve ".."
 let publicPath = combine output "../public"
 let clientPath = combine output "client"
-printfn "%A" publicPath
+
 app
 // Register the static directories
 |> Express.Sugar.``use`` (express.``static``.Invoke(publicPath, staticOptions))

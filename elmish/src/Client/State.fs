@@ -5,6 +5,8 @@ open Elmish.Browser.Navigation
 open Elmish.Browser.UrlParser
 open Fable.Import.Browser
 open Types
+open Lenses
+open Lenses.Operators
 
 let pageParser: Parser<Page->Page,Page> =
     oneOf [
@@ -22,7 +24,26 @@ let urlUpdate (result: Option<Page>) model =
         model, Navigation.modifyUrl (toHash model.CurrentPage)
 
     | Some page ->
-        { model with CurrentPage = page }, Cmd.none
+        let model = { model with CurrentPage = page }
+
+        match page with
+        | Home -> model, Cmd.none
+        | Admin adminPage ->
+            match adminPage with
+            | AdminPage.Index -> model, Cmd.none
+            | AdminPage.User userPage ->
+                match userPage with
+                | AdminUserPage.Create -> model, Cmd.none
+                | AdminUserPage.Edit id -> model, Cmd.none
+                | AdminUserPage.Index ->
+                    let (subModel, subMsg) = Admin.User.Index.State.init ()
+                    let subCmd =
+                        subMsg
+                        |> Cmd.map Admin.Dispatcher.Types.UserIndexMsg
+                        |> Cmd.map AdminMsg
+
+                    model
+                    |> Optic.set (Model.AdminModelLens >-> Admin.Dispatcher.Types.Model.UserIndexLens) subModel, subCmd
 
 let init result =
     urlUpdate result

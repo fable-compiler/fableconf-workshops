@@ -3,13 +3,7 @@ module Database
 open Fable.Core
 open Fable.Import
 open Helpers
-
-[<Pojo>]
-type Users =
-    { Firstname: string
-      Surname: string
-      Email: string
-      Password: string }
+open Shared.Types
 
 [<Pojo>]
 type DatabaseData =
