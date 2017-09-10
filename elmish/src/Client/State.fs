@@ -5,8 +5,8 @@ open Elmish.Browser.Navigation
 open Elmish.Browser.UrlParser
 open Fable.Import.Browser
 open Types
-open Lenses
-open Lenses.Operators
+open Okular
+open Okular.Operators
 
 let pageParser: Parser<Page->Page,Page> =
     oneOf [
@@ -43,7 +43,7 @@ let urlUpdate (result: Option<Page>) model =
                         |> Cmd.map AdminMsg
 
                     model
-                    |> Optic.set (Model.AdminModelLens >-> Admin.Dispatcher.Types.Model.UserIndexLens) subModel, subCmd
+                    |> Lens.set (Model.AdminModelLens >-> Admin.Dispatcher.Types.Model.UserIndexLens) subModel, subCmd
 
 let init result =
     urlUpdate result

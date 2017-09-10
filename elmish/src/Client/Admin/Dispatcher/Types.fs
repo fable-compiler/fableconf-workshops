@@ -1,6 +1,6 @@
 module Admin.Dispatcher.Types
 
-open Lenses
+open Okular.Lens
 
 type Model =
     { Index : Admin.Index.Types.Model

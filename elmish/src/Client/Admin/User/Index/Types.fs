@@ -1,6 +1,6 @@
 module Admin.User.Index.Types
 
-open Lenses
+open Okular.Lens
 
 type Model =
     { Users : Shared.Types.Users list }

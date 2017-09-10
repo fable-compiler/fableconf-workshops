@@ -1,6 +1,6 @@
 module App.Types
 
-open Lenses
+open Okular.Lens
 
 type Msg =
     | AdminMsg of Admin.Dispatcher.Types.Msg
