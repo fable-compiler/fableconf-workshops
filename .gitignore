@@ -286,3 +286,10 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+elmish/output
+**/node_modules
+**/packages
+**/paket-files
+elmish/ressources/*
+!elmish/ressources/.keep

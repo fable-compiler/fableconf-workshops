@@ -1,0 +1,41 @@
+{
+    "name": "fableconf-2017-workshop-elmish",
+    "version": "1.0.0",
+    "description": "Simple Fable App",
+    "scripts": {
+        "watch:server": "nodemon output/server/server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "babel-runtime": "^6.26.0",
+        "body-parser": "^1.18.0",
+        "lowdb": "^1.0.0",
+        "morgan": "^1.8.2",
+        "react": "^15.6.1",
+        "react-dom": "^15.6.1",
+        "remotedev": "^0.2.7"
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.0",
+        "babel-loader": "^7.1.2",
+        "babel-plugin-transform-runtime": "^6.23.0",
+        "babel-preset-es2015": "^6.24.1",
+        "bulma": "^0.5.1",
+        "css-loader": "^0.28.7",
+        "fable-loader": "^1.1.2",
+        "fable-utils": "^1.0.4",
+        "loglevel": "^1.4.1",
+        "node-sass": "^4.5.3",
+        "nodemon-webpack-plugin": "^0.1.2",
+        "reload": "^2.2.2",
+        "sass-loader": "^6.0.6",
+        "style-loader": "^0.18.2",
+        "watch": "^1.0.2",
+        "webpack": "^3.5.6",
+        "webpack-dev-server": "^2.7.1",
+        "webpack-node-externals": "^1.6.0"
+    }
+}
