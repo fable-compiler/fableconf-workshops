@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build": "cd src/App && dotnet fable webpack --port free -- -p",
-    "start": "cd src/App && dotnet fable webpack-dev-server --port free -- --config ../../webpack.config.js ",
+    "build": "webpack -p",
+    "start": "webpack-dev-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

@@ -3,6 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Shared/Init.fs" />
     <Compile Include="P2.fs" />
     <Compile Include="Worker.fs" />
   </ItemGroup>

@@ -4,16 +4,10 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
+open Shared
 
 let [<Global>] self: obj = jsNative
 let [<Global>] setInterval(f: unit->unit, ms: float): unit = jsNative
-
-type InitOptions =
-    abstract N: int
-    abstract dt: int
-    abstract boxWidth: float
-    abstract boxHeight: float
-    abstract p2Url: string
 
 // Syntax helpers
 let inline (~%) fields = createObj fields
@@ -31,7 +25,7 @@ let fillAndSendArray (world: P2.World, array: float[]) =
     // Send data back to the main thread
     self?postMessage(array, [|array?buffer|]) |> ignore
 
-let createWorld(initOpts: InitOptions) =
+let createWorld(initOpts: Init.Options) =
     let world = P2.World(%["gravity" ==> (0, -5)])
     // Ground plane
     let planeShape = P2.Plane()
@@ -55,12 +49,9 @@ let createWorld(initOpts: InitOptions) =
     world
 
 let init() =
-    let mutable world = None
+    let world = createWorld(Init.options)
     self?onmessage <- fun (ev: Browser.MessageEvent) ->
-        match ev.data with
-        | :? (float array) as ar ->
-            fillAndSendArray(world.Value, ar)
-        | _ ->
-            world <- createWorld(ev.data :?> InitOptions) |> Some
+        let ar = ev.data :?> float[]
+        fillAndSendArray(world, ar)
 
 init()

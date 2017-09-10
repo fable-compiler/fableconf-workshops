@@ -4,12 +4,10 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.Browser
+open Shared
 
 // Parameters
-let N = 100
 let zoom = 20.
-let boxWidth = 0.5
-let boxHeight = 0.5
 let workerUrl = "/build/worker.js"
 
 let initCanvas() =
@@ -23,10 +21,6 @@ let rec initWorker(url, dataRef: float[] option ref) =
     worker.onmessage <- (fun e ->
         dataRef := Some !!e.data
         null)
-    createObj["N" ==> N
-              "boxWidth" ==> boxWidth
-              "boxHeight" ==> boxHeight]
-    |> worker.postMessage
     worker
 
 and sendBuffer(worker: Worker, dataRef: float[] option ref, timestep: float) =
@@ -38,8 +32,9 @@ and sendBuffer(worker: Worker, dataRef: float[] option ref, timestep: float) =
     | _ -> ()
 
 let drawBodies(ctx: CanvasRenderingContext2D, data: float[]) =
+    let opts = Init.options
     // Draw all bodies. Skip the first one, it's the ground plane
-    for i=1 to (N-1) do
+    for i=1 to (opts.N - 1) do
         ctx.beginPath()
         let x =     data.[i * 3 + 1]
         let y =     data.[i * 3 + 2]
@@ -47,7 +42,7 @@ let drawBodies(ctx: CanvasRenderingContext2D, data: float[]) =
         ctx.save()
         ctx.translate(x, y) // Translate to the center of the box
         ctx.rotate(angle)   // Rotate to the box body frame
-        ctx.rect(-boxWidth/2., -boxHeight/2., boxWidth, boxHeight)
+        ctx.rect(-opts.boxWidth/2., -opts.boxHeight/2., opts.boxWidth, opts.boxHeight)
         ctx.stroke()
         ctx.restore()
 
@@ -69,7 +64,7 @@ let init() =
     // Data array. Contains all our data we need for rendering: a 2D position and an angle per body.
     // It will be sent back and forth from the main thread and the worker thread. When
     // it's sent from the worker, it's filled with position data of all bodies.
-    let data = Array.zeroCreate (N * 3 + 1) |> Some |> ref
+    let data = Array.zeroCreate (Init.options.N * 3 + 1) |> Some |> ref
     let worker = initWorker(workerUrl, data)
     let ctx, w, h = initCanvas()
     let rec animate prevDiff last t =
