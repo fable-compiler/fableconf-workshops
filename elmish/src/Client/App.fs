@@ -11,7 +11,6 @@ open App.State
 open Fulma.Layout
 open Fulma.Components
 open Fulma.Elements
-open Global
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 
@@ -65,6 +64,7 @@ let root (model: Model) dispatch =
     let pageHtml =
         function
         | Home -> Home.View.root model.Home (HomeMsg >> dispatch)
+        | Admin adminPage -> Admin.Dispatcher.View.root model.AdminModel adminPage (AdminMsg >> dispatch)
 
     div
         [ ClassName "container" ]

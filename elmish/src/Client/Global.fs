@@ -1,3 +1,4 @@
+[<AutoOpen>]
 module Global
 
 open Fable.Core
