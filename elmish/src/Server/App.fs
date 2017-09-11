@@ -45,14 +45,13 @@ app
 |> Express.Sugar.get
         "/user/list"
         (fun req res ->
-            let posts =
+            let users =
                 Database.Lowdb
                     .get(!^"Users")
-                    .find()
                     .value()
 
             res.setHeader("Content-Type", !^"application/json")
-            Express.Sugar.Response.send (toJson posts) res
+            Express.Sugar.Response.send (toJson users) res
         )
 // |> Express.get
 //         ""
