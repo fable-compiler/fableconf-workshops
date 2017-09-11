@@ -8,9 +8,15 @@ open Types
 
 let root model (currentPage: AdminPage)  dispatch =
     match currentPage with
-    | AdminPage.Index -> Admin.Index.View.root model.Index (IndexMsg >> dispatch)
+    | AdminPage.Index ->
+        secureView Admin.Index.View.root model.Index (IndexMsg >> dispatch)
+
     | AdminPage.User userPage ->
         match userPage with
-        | AdminUserPage.Index -> Admin.User.Index.View.root model.UserIndex (UserIndexMsg >> dispatch)
+        | AdminUserPage.Index ->
+            secureView Admin.User.Index.View.root model.UserIndex (UserIndexMsg >> dispatch)
+
         | AdminUserPage.Create -> str "User create"
-        | AdminUserPage.Edit id -> str "User edit"
+
+        | AdminUserPage.Edit id ->
+            secureView Admin.User.Edit.View.root model.UserEdit (UserEditMsg >> dispatch)

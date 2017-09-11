@@ -82,10 +82,16 @@ let port =
 Database.Lowdb
     .defaults(
         { Users =
-            [| { Firstname = "Maxime"
+            [| { Id = 1
+                 Firstname = "Maxime"
                  Surname = "Mangel"
                  Email = "mangel.maxime@fableconf.com"
                  Password = "maxime" }
+               { Id = 2
+                 Firstname = "Alfonso"
+                 Surname = "Garciacaro"
+                 Email = "garciacaro.alfonso@fableconf.com"
+                 Password = "alfonso" }
             |]
         }
     ).write()

@@ -1,6 +1,7 @@
 module Admin.User.Index.State
 
 open Elmish
+open Elmish.Browser.Navigation
 open Types
 
 let init () =
@@ -20,3 +21,7 @@ let update msg model =
     | Error error ->
         printfn "%s" error.Message
         model, Cmd.none
+
+    | ShowDetail id ->
+        let url = AdminUserPage.Edit >> AdminPage.User >> Admin
+        model, Navigation.newUrl (toHash (url id))

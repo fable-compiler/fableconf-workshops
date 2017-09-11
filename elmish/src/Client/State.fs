@@ -29,26 +29,13 @@ let urlUpdate (result: Option<Page>) model =
         match page with
         | Home -> model, Cmd.none
         | Admin adminPage ->
-            match adminPage with
-            | AdminPage.Index -> model, Cmd.none
-            | AdminPage.User userPage ->
-                match userPage with
-                | AdminUserPage.Create -> model, Cmd.none
-                | AdminUserPage.Edit id -> model, Cmd.none
-                | AdminUserPage.Index ->
-                    let (subModel, subMsg) = Admin.User.Index.State.init ()
-                    let subCmd =
-                        subMsg
-                        |> Cmd.map Admin.Dispatcher.Types.UserIndexMsg
-                        |> Cmd.map AdminMsg
-
-                    model
-                    |> Lens.set (Model.AdminModelLens >-> Admin.Dispatcher.Types.Model.UserIndexLens) subModel, subCmd
+            let (subModel, subMsg) = Admin.Dispatcher.State.init adminPage
+            { model with AdminModel = subModel }, Cmd.map AdminMsg subMsg
 
 let init result =
     urlUpdate result
         { CurrentPage = Home
-          AdminModel = Admin.Dispatcher.State.init()
+          AdminModel = Admin.Dispatcher.Types.Model.Empty// Admin.Dispatcher.State.init()
           Home = Home.State.init() }
 
 let update msg (model:Model) =

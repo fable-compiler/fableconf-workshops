@@ -17,3 +17,4 @@ type Msg =
     | FetchUsers
     | FetchUsersSuccess of Shared.Types.User []
     | Error of exn
+    | ShowDetail of int

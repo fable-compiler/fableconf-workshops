@@ -4,7 +4,8 @@ open Fable.Core
 
 [<Pojo>]
 type User =
-    { Firstname: string
+    { Id : int
+      Firstname: string
       Surname: string
       Email: string
       Password: string }

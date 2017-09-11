@@ -3,8 +3,8 @@ module Admin.Index.State
 open Elmish
 open Types
 
-let init () : Model =
-    ""
+let init () =
+    "", Cmd.none
 
 let update msg model =
     match msg with
