@@ -17,4 +17,7 @@ let userRow (user : Shared.Types.User) =
                     [ Icon.faIcon [ Icon.isSmall ] Fa.Eye ] ] ]
 
 let root model dispatch =
-    str "create of edit"
+    if model.User.IsNone then
+        str "loading"
+    else
+        str model.User.Value.Email

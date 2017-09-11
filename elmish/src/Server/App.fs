@@ -53,6 +53,19 @@ app
             res.setHeader("Content-Type", !^"application/json")
             Express.Sugar.Response.send (toJson users) res
         )
+|> Express.Sugar.get
+        "/user/:id"
+        (fun req res ->
+            let id = unbox<int> req.``params``?id
+            let user =
+                Database.Lowdb
+                    .get(!^"Users")
+                    .find(createObj [ "Id" ==> id])
+                    .value()
+
+            res.setHeader("Content-Type", !^"application/json")
+            Express.Sugar.Response.send (toJson user) res
+        )
 // |> Express.get
 //         ""
 |> ignore
