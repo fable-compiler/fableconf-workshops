@@ -1,39 +1,38 @@
 ﻿module App.State
 
 open Shared
-open Types
 
-type private Box(x, y, angle) =
-    member val X_: float = x with get, set
-    member val Y_: float = y with get, set
-    member val Angle_: float = angle with get, set
-    interface IBox with
-        member this.X = this.X_
-        member this.Y = this.Y_
-        member this.Angle = this.Angle_
-        member this.Width = Init.boxWidth
-        member this.Height = Init.boxHeight
+// Type has mutable fields for performance.
+// We could hide this behind an interface,
+// but records serialize much better with the debugger.
+type Box =
+    { mutable X: float
+      mutable Y: float
+      mutable Angle: float }
 
-type private Model(boxes) =
-    member val Boxes_: Box[] = boxes
-    member val Initialized_ = false with get, set
-    interface IModel with
-        member this.Boxes = this.Boxes_ |> Seq.cast<IBox>
-        member this.Initialized = this.Initialized_
+type Model =
+    { Boxes: Box[]
+      Initialized: bool }
+
+type Msg =
+    | Physics of float[]
 
 let initModel() =
-    let boxes = Array.init Init.N (fun _ -> Box(0.,0.,0.))
-    Model(boxes) :> IModel, []
+    let model =
+        { Boxes = Array.init Init.N (fun _ -> { X=0.; Y=0.; Angle=0. })
+          Initialized = false }
+    model, []
 
-let update (msg: Msg) (model: IModel) =
-    let model = model :?> Model
+let update (msg: Msg) (model: Model) =
     match msg with
     | Physics data ->
-        if not model.Initialized_ then
-            model.Initialized_ <- true
+        let model =
+            if not model.Initialized
+            then { model with Initialized = true }
+            else model
         for i=0 to (Init.N - 1) do
-            let box = model.Boxes_.[i]
-            box.X_     <- data.[i * 3 + 1]
-            box.Y_     <- data.[i * 3 + 2]
-            box.Angle_ <- data.[i * 3 + 3]
-    model :> IModel, []
+            let box = model.Boxes.[i]
+            box.X     <- data.[i * 3 + 1]
+            box.Y     <- data.[i * 3 + 2]
+            box.Angle <- data.[i * 3 + 3]
+        model, []

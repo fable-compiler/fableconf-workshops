@@ -4,8 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Shared/Shared.fs" />
-    <Compile Include="Elmish.fs" />
-    <Compile Include="Types.fs" />
+    <Compile Include="Fable.Import.RemoteDev.fs" />
+    <Compile Include="Elmish.Debugger.fs" />
+    <Compile Include="Elmish.Worker.fs" />
     <Compile Include="State.fs" />
     <Compile Include="View.fs" />
     <Compile Include="App.fs" />

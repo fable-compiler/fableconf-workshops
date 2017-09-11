@@ -8,14 +8,16 @@ open Shared
 let inline private requestFrame f =
     window.requestAnimationFrame(FrameRequestCallback f) |> ignore
 
+
 let withPhysicsWorker
     workerUrl (buffer: 'T[])
-    (receive: 'T[]->'msg) (send: float->'T[]->'T[])
+    (receive: 'T[]->'msg) (send: float->'model->'T[]->bool)
     (program:Elmish.Program<_,'model,'msg,_>) =
 
     // TODO: Is there a better way to handle this?
     let mutable model = Unchecked.defaultof<'model>
 
+    let mutable animating = true
     let bufferRef = ref (Some buffer)
     let worker = Worker.Create(workerUrl)
 
@@ -26,11 +28,13 @@ let withPhysicsWorker
         let timestep = t - last
         match !bufferRef with
         | Some buffer when timestep > 0. && (prevts = 0. || timestep < prevts * 10.) ->
-            let buffer = send timestep buffer
-            transferArray buffer worker
-            bufferRef := None
+            animating <- send timestep model buffer
+            if animating then
+                transferArray buffer worker
+                bufferRef := None
         | _ -> ()
-        requestFrame (animate dispatch timestep t)
+        if animating then
+            requestFrame (animate dispatch timestep t)
 
     let init arg =
         let subscribeWorker dispatch =
@@ -42,5 +46,14 @@ let withPhysicsWorker
             requestFrame (animate dispatch 0. 0.)
         let model, cmd = program.init arg
         model, cmd @ [subscribeWorker; subscribeAnimation]
-        
-    { program with init = init; setState = fun m _ -> model <- m }
+
+    let setState m dispatch =
+        model <- m
+        if not animating then
+            program.view model dispatch
+            // Use send function just to check if
+            // we should start animating again
+            if send 0. model buffer then
+                requestFrame (animate dispatch 0. 0.)
+
+    { program with init = init; setState = setState }

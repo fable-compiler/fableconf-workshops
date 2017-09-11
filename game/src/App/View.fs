@@ -1,7 +1,7 @@
 ﻿module App.View
 
 open Shared
-open Types
+open State
 open Fable.Import.Browser
 
 let initCanvas() =
@@ -10,7 +10,7 @@ let initCanvas() =
     ctx.lineWidth <- Init.canvasLineWidth
     ctx, canvas.width, canvas.height
 
-let drawBodies(ctx: CanvasRenderingContext2D, model: IModel) =
+let drawBodies(ctx: CanvasRenderingContext2D, model: Model) =
     // Draw all bodies. Skip the first one, it's the ground plane
     for box in Seq.skip 1 model.Boxes do
         ctx.beginPath()
@@ -19,11 +19,11 @@ let drawBodies(ctx: CanvasRenderingContext2D, model: IModel) =
         ctx.translate(box.X, box.Y)
         // Rotate to the box body frame
         ctx.rotate(box.Angle)
-        ctx.rect(-box.Width/2., -box.Height/2., box.Width, box.Height)
+        ctx.rect(-Init.boxWidth/2., -Init.boxHeight/2., Init.boxWidth, Init.boxHeight)
         ctx.stroke()
         ctx.restore()
 
-let render(ctx: CanvasRenderingContext2D, canvasWidth: float, canvasHeight: float) (model: IModel) _ =
+let render(ctx: CanvasRenderingContext2D, canvasWidth: float, canvasHeight: float) (model: Model) (dispatch: Msg->unit) =
     if model.Initialized then
         // Clear the canvas
         ctx.clearRect(0., 0., canvasWidth, canvasHeight)
@@ -39,4 +39,3 @@ let render(ctx: CanvasRenderingContext2D, canvasWidth: float, canvasHeight: floa
         drawBodies(ctx, model)
         // Restore transform
         ctx.restore()
-
