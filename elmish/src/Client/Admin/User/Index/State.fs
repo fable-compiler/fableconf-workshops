@@ -12,5 +12,11 @@ let update msg model =
         model, Cmd.none
 
     | FetchUsers ->
-        printfn "Try to fetch user list"
+        model, Cmd.ofPromise Rest.getUserList () FetchUsersSuccess Error
+
+    | FetchUsersSuccess users ->
+        { model with Users = users |> Array.toList }, Cmd.none
+
+    | Error error ->
+        printfn "%s" error.Message
         model, Cmd.none

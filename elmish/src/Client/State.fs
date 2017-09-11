@@ -55,7 +55,7 @@ let update msg (model:Model) =
     match msg with
     | AdminMsg msg ->
         let (admin, adminMsg) = Admin.Dispatcher.State.update msg model.AdminModel
-        { model with AdminModel = admin}, Cmd.none
+        { model with AdminModel = admin}, Cmd.map AdminMsg adminMsg
 
     | HomeMsg msg ->
         let home = Home.State.update msg model.Home

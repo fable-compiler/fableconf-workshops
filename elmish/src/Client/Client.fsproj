@@ -15,6 +15,7 @@
     <Compile Include="Admin/Index/State.fs" />
     <Compile Include="Admin/Index/View.fs" />
     <Compile Include="Admin/User/Index/Types.fs" />
+    <Compile Include="Admin/User/Index/Rest.fs" />
     <Compile Include="Admin/User/Index/State.fs" />
     <Compile Include="Admin/User/Index/View.fs" />
     <Compile Include="Admin/Dispatcher/Types.fs" />

@@ -7,4 +7,8 @@ open Fable.Helpers.React.Props
 open Types
 
 let root model dispatch =
-    str "coucou list of users"
+    div []
+        [ for user in model.Users do
+            yield str user.Firstname
+            yield br []
+        ]

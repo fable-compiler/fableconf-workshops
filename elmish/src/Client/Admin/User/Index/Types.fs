@@ -3,7 +3,7 @@ module Admin.User.Index.Types
 open Okular.Lens
 
 type Model =
-    { Users : Shared.Types.Users list }
+    { Users : Shared.Types.User list }
 
     static member Empty =
         { Users = [] }
@@ -15,3 +15,5 @@ type Model =
 type Msg =
     | ChangeStr of string
     | FetchUsers
+    | FetchUsersSuccess of Shared.Types.User []
+    | Error of exn

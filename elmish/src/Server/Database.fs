@@ -7,7 +7,7 @@ open Shared.Types
 
 [<Pojo>]
 type DatabaseData =
-    { Users: Users [] }
+    { Users: User [] }
 
 let dbFile = resolve("../../ressources/db.json")
 let adapter = Lowdb.FileSyncAdapter(dbFile)

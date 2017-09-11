@@ -27,3 +27,5 @@ let toHash page =
             | AdminUserPage.Index -> "#admin/user"
             | Create -> "#admin/user/create"
             | Edit id -> sprintf "#admin/user/%i" id
+
+let serverUrl path = "http://localhost:8080" + path
