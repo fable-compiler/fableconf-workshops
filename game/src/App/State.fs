@@ -5,13 +5,13 @@ open Shared
 // Type has mutable fields for performance.
 // We could hide this behind an interface,
 // but records serialize much better with the debugger.
-type Box =
+type Ship =
     { mutable X: float
       mutable Y: float
       mutable Angle: float }
 
 type Model =
-    { Boxes: Box[]
+    { Ship: Ship
       Initialized: bool }
 
 type Msg =
@@ -19,7 +19,7 @@ type Msg =
 
 let initModel() =
     let model =
-        { Boxes = Array.init Init.N (fun _ -> { X=0.; Y=0.; Angle=0. })
+        { Ship = { X=0.; Y=0.; Angle=0. }
           Initialized = false }
     model, []
 
@@ -30,9 +30,9 @@ let update (msg: Msg) (model: Model) =
             if not model.Initialized
             then { model with Initialized = true }
             else model
-        for i=0 to (Init.N - 1) do
-            let box = model.Boxes.[i]
-            box.X     <- data.[i * 3 + 1]
-            box.Y     <- data.[i * 3 + 2]
-            box.Angle <- data.[i * 3 + 3]
+        //for i=0 to (Init.N - 1) do
+            //let box = model.Boxes.[i]
+            //box.X     <- data.[i * 3 + 1]
+            //box.Y     <- data.[i * 3 + 2]
+            //box.Angle <- data.[i * 3 + 3]
         model, []

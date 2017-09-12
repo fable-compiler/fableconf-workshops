@@ -5,10 +5,17 @@
   <title>FableConf Game Workshop</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <canvas width="600" height="800"></canvas>
+  <canvas></canvas>
+  <div id="logo" class="textBox bottomRight">POWERED BY <a href="https://github.com/schteppe/p2.js">P2.JS</a> PHYSICS</div>
+  <div id="logo" class="textBox bottomLeft">GAME BY <a href="https://twitter.com/schteppe">@SCHTEPPE</a></div>
+  <div id="level" class="textBox"></div>
+  <div id="lives" class="textBox"></div>
+  <div id="gameover" class="textBox centered hidden">GAME OVER</div>
+  <!-- <div id="instructions" class="textBox centered">ARROW KEYS = CONTROL SHIP<br/>SPACE = SHOOT</div> -->
   <script src="build/app.js"></script>
 </body>
 </html>

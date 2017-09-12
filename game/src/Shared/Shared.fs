@@ -5,16 +5,34 @@ open Fable.Core
 open Fable.Import
 
 module Init =
-    let [<Literal>] N = 100
-    let [<Literal>] boxWidth = 0.5
-    let [<Literal>] boxHeight = 0.5
-    let [<Literal>] canvasZoom = 20.
-    let [<Literal>] canvasLineWidth = 0.05
+    let [<Literal>] level = 1
+    let [<Literal>] lives = 3
+    let [<Literal>] fillStyle = "white"
+    let [<Literal>] strokeStyle = "white"    
+    let [<Literal>] shipSize = 0.3
+    let [<Literal>] spaceWidth = 16.
+    let [<Literal>] spaceHeight = 9.
+    let [<Literal>] maxAsteroidSpeed = 2.
+    let [<Literal>] asteroidRadius = 0.9
+    let [<Literal>] numAsteroidLevels = 4.
+    let [<Literal>] numAsteroidVerts = 10.
     let [<Literal>] workerURL = "/build/worker.js"
+
+    // These will be used in a binary mask so use powers of 2
+    let SHIP =     2
+    let BULLET =   4
+    let ASTEROID = 8
+
+[<RequireQualifiedAccess>]
+module Keys =
+    let [<Literal>] Space = 32.
+    let [<Literal>] Left = 37.
+    let [<Literal>] Up = 38.
+    let [<Literal>] Right = 39.
 
 // --- HELPERS ---
 
-// Don't make this directly public to preventç
+// Don't make this directly public to prevent
 // double evaluation of arguments
 [<Emit("$1.postMessage($0, [$0.buffer])")>]
 let private transferArrayJs (ar: 'T[]) (worker: Browser.Worker): unit = jsNative
