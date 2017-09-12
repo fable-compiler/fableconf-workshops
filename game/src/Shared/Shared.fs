@@ -10,6 +10,7 @@ module Init =
     let [<Literal>] fillStyle = "white"
     let [<Literal>] strokeStyle = "white"    
     let [<Literal>] shipSize = 0.3
+    let [<Literal>] shipTurnSpeed = 4.
     let [<Literal>] spaceWidth = 16.
     let [<Literal>] spaceHeight = 9.
     let [<Literal>] maxAsteroidSpeed = 2.

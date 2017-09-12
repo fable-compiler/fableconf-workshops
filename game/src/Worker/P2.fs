@@ -6,13 +6,13 @@ open Fable.Core
 open Fable.Import.JS
 
 type [<AllowNullLiteral>] [<Import("AABB","p2")>] AABB(?options: obj) =
-    member __.upperBound with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.lowerBound with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.setFromPoints(points: array<array<float>>, position: array<float>, angle: float, skinSize: float): unit = jsNative
+    member __.upperBound with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.lowerBound with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.setFromPoints(points: array<(float*float)>, position: (float*float), angle: float, skinSize: float): unit = jsNative
     member __.copy(aabb: AABB): unit = jsNative
     member __.extend(aabb: AABB): unit = jsNative
     member __.overlaps(aabb: AABB): bool = jsNative
-    member __.containsPoint(point: array<float>): bool = jsNative
+    member __.containsPoint(point: (float*float)): bool = jsNative
     member __.overlapsRay(ray: Ray): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("Broadphase","p2")>] Broadphase(``type``: float) =
@@ -32,8 +32,7 @@ and [<AllowNullLiteral>] [<Import("Broadphase","p2")>] Broadphase(``type``: floa
     member __.boundingVolumeCheck(bodyA: Body, bodyB: Body): bool = jsNative
 
 and [<AllowNullLiteral>] [<Import("NaiveBroadphase","p2")>] NaiveBroadphase() =
-    // inherit     Broadphase()
-    class end
+    inherit Broadphase(0.)
 
 and [<AllowNullLiteral>] [<Import("Narrowphase","p2")>] Narrowphase() =
     member __.contactEquations with get(): array<ContactEquation> = jsNative and set(v: array<ContactEquation>): unit = jsNative
@@ -60,7 +59,7 @@ and [<AllowNullLiteral>] [<Import("Narrowphase","p2")>] Narrowphase() =
     member __.bodiesOverlap(bodyA: Body, bodyB: Body, ?checkCollisionMasks: bool): bool = jsNative
 
 and [<AllowNullLiteral>] [<Import("SAPBroadphase","p2")>] SAPBroadphase() =
-    // inherit     Broadphase()
+    inherit Broadphase(0.)
     member __.axisList with get(): array<Body> = jsNative and set(v: array<Body>): unit = jsNative
     member __.axisIndex with get(): float = jsNative and set(v: float): unit = jsNative
     member __.sortList(): unit = jsNative
@@ -81,9 +80,9 @@ and [<AllowNullLiteral>] [<Import("Constraint","p2")>] Constraint(bodyA: Body, b
     member __.setRelaxation(relaxation: float): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("DistanceConstraint","p2")>] DistanceConstraint(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Constraint()
-    member __.localAnchorA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.localAnchorB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Constraint(bodyA, bodyB, 0.)
+    member __.localAnchorA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.localAnchorB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.distance with get(): float = jsNative and set(v: float): unit = jsNative
     member __.maxForce with get(): float = jsNative and set(v: float): unit = jsNative
     member __.upperLimitEnabled with get(): bool = jsNative and set(v: bool): unit = jsNative
@@ -95,22 +94,22 @@ and [<AllowNullLiteral>] [<Import("DistanceConstraint","p2")>] DistanceConstrain
     member __.getMaxForce(): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("GearConstraint","p2")>] GearConstraint(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Constraint()
+    inherit Constraint(bodyA, bodyB, 0.)
     member __.ratio with get(): float = jsNative and set(v: float): unit = jsNative
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
     member __.setMaxTorque(torque: float): unit = jsNative
     member __.getMaxTorque(): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("LockConstraint","p2")>] LockConstraint(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Constraint()
+    inherit Constraint(bodyA, bodyB, 0.)
     member __.setMaxForce(force: float): unit = jsNative
     member __.getMaxForce(): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("PrismaticConstraint","p2")>] PrismaticConstraint(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Constraint()
-    member __.localAnchorA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.localAnchorB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.localAxisA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Constraint(bodyA, bodyB, 0.)
+    member __.localAnchorA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.localAnchorB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.localAxisA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.position with get(): float = jsNative and set(v: float): unit = jsNative
     member __.velocity with get(): float = jsNative and set(v: float): unit = jsNative
     member __.lowerLimitEnabled with get(): bool = jsNative and set(v: bool): unit = jsNative
@@ -127,9 +126,9 @@ and [<AllowNullLiteral>] [<Import("PrismaticConstraint","p2")>] PrismaticConstra
     member __.setLimits(lower: float, upper: float): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("RevoluteConstraint","p2")>] RevoluteConstraint(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Constraint()
-    member __.pivotA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.pivotB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Constraint(bodyA, bodyB, 0.)
+    member __.pivotA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.pivotB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.motorEquation with get(): RotationalVelocityEquation = jsNative and set(v: RotationalVelocityEquation): unit = jsNative
     member __.motorEnabled with get(): bool = jsNative and set(v: bool): unit = jsNative
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
@@ -147,17 +146,17 @@ and [<AllowNullLiteral>] [<Import("RevoluteConstraint","p2")>] RevoluteConstrain
     member __.getMotorSpeed(): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("AngleLockEquation","p2")>] AngleLockEquation(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Equation()
+    inherit Equation(bodyA, bodyB)
     member __.computeGq(): float = jsNative
     member __.setRatio(ratio: float): float = jsNative
     member __.setMaxTorque(torque: float): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("ContactEquation","p2")>] ContactEquation(bodyA: Body, bodyB: Body) =
-    // inherit     Equation()
-    member __.contactPointA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.penetrationVec with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.contactPointB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.normalA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Equation(bodyA, bodyB)
+    member __.contactPointA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.penetrationVec with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.contactPointB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.normalA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.restitution with get(): float = jsNative and set(v: float): unit = jsNative
     member __.firstImpact with get(): bool = jsNative and set(v: bool): unit = jsNative
     member __.shapeA with get(): Shape = jsNative and set(v: Shape): unit = jsNative
@@ -173,7 +172,7 @@ and [<AllowNullLiteral>] [<Import("Equation","p2")>] Equation(bodyA: Body, bodyB
     member __.bodyB with get(): Body = jsNative and set(v: Body): unit = jsNative
     member __.stiffness with get(): float = jsNative and set(v: float): unit = jsNative
     member __.relaxation with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.G with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.G with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.offset with get(): float = jsNative and set(v: float): unit = jsNative
     member __.a with get(): float = jsNative and set(v: float): unit = jsNative
     member __.b with get(): float = jsNative and set(v: float): unit = jsNative
@@ -183,7 +182,7 @@ and [<AllowNullLiteral>] [<Import("Equation","p2")>] Equation(bodyA: Body, bodyB
     member __.multiplier with get(): float = jsNative and set(v: float): unit = jsNative
     member __.relativeVelocity with get(): float = jsNative and set(v: float): unit = jsNative
     member __.enabled with get(): bool = jsNative and set(v: bool): unit = jsNative
-    member __.gmult(G: array<float>, vi: array<float>, wi: array<float>, vj: array<float>, wj: array<float>): float = jsNative
+    member __.gmult(G: (float*float), vi: (float*float), wi: (float*float), vj: (float*float), wj: (float*float)): float = jsNative
     member __.computeB(a: float, b: float, h: float): float = jsNative
     member __.computeGq(): float = jsNative
     member __.computeGW(): float = jsNative
@@ -194,10 +193,10 @@ and [<AllowNullLiteral>] [<Import("Equation","p2")>] Equation(bodyA: Body, bodyB
     member __.computeInvC(eps: float): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("FrictionEquation","p2")>] FrictionEquation(bodyA: Body, bodyB: Body, slipForce: float) =
-    // inherit     Equation()
-    member __.contactPointA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.contactPointB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.t with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Equation(bodyA, bodyB)
+    member __.contactPointA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.contactPointB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.t with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.shapeA with get(): Shape = jsNative and set(v: Shape): unit = jsNative
     member __.shapeB with get(): Shape = jsNative and set(v: Shape): unit = jsNative
     member __.frictionCoefficient with get(): float = jsNative and set(v: float): unit = jsNative
@@ -206,18 +205,18 @@ and [<AllowNullLiteral>] [<Import("FrictionEquation","p2")>] FrictionEquation(bo
     member __.computeB(a: float, b: float, h: float): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("RotationalLockEquation","p2")>] RotationalLockEquation(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Equation()
+    inherit Equation(bodyA, bodyB)
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
     member __.computeGq(): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("RotationalVelocityEquation","p2")>] RotationalVelocityEquation(bodyA: Body, bodyB: Body) =
-    // inherit     Equation()
+    inherit Equation(bodyA, bodyB)
     member __.computeB(a: float, b: float, h: float): float = jsNative
 
 and [<AllowNullLiteral>] [<Import("EventEmitter","p2")>] EventEmitter() =
-    member __.on(``type``: string, listener: Function, ?context: obj): EventEmitter = jsNative
-    member __.has(``type``: string, listener: Function): bool = jsNative
-    member __.off(``type``: string, listener: Function): EventEmitter = jsNative
+    member __.on(``type``: string, listener: obj->unit, ?context: obj): EventEmitter = jsNative
+    member __.has(``type``: string, listener: obj->unit): bool = jsNative
+    member __.off(``type``: string, listener: obj->unit): EventEmitter = jsNative
     member __.emit(``event``: obj): EventEmitter = jsNative
 
 and [<AllowNullLiteral>] ContactMaterialOptions =
@@ -248,47 +247,47 @@ and [<AllowNullLiteral>] [<Import("Material","p2")>] Material(?id: float) =
     member __.id with get(): float = jsNative and set(v: float): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("vec2","p2")>] vec2() =
-    static member crossLength(a: array<float>, b: array<float>): float = jsNative
-    static member crossVZ(out: array<float>, vec: array<float>, zcomp: float): float = jsNative
-    static member crossZV(out: array<float>, zcomp: float, vec: array<float>): float = jsNative
-    static member rotate(out: array<float>, a: array<float>, angle: float): unit = jsNative
-    static member rotate90cw(out: array<float>, a: array<float>): float = jsNative
-    static member centroid(out: array<float>, a: array<float>, b: array<float>, c: array<float>): array<float> = jsNative
-    static member create(): array<float> = jsNative
-    static member clone(a: array<float>): array<float> = jsNative
-    static member fromValues(x: float, y: float): array<float> = jsNative
-    static member copy(out: array<float>, a: array<float>): array<float> = jsNative
-    static member set(out: array<float>, x: float, y: float): array<float> = jsNative
-    static member toLocalFrame(out: array<float>, worldPoint: array<float>, framePosition: array<float>, frameAngle: float): unit = jsNative
-    static member toGlobalFrame(out: array<float>, localPoint: array<float>, framePosition: array<float>, frameAngle: float): unit = jsNative
-    static member add(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member subtract(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member sub(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member multiply(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member mul(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member divide(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member div(out: array<float>, a: array<float>, b: array<float>): array<float> = jsNative
-    static member scale(out: array<float>, a: array<float>, b: float): array<float> = jsNative
-    static member distance(a: array<float>, b: array<float>): float = jsNative
-    static member dist(a: array<float>, b: array<float>): float = jsNative
-    static member squaredDistance(a: array<float>, b: array<float>): float = jsNative
-    static member sqrDist(a: array<float>, b: array<float>): float = jsNative
-    static member length(a: array<float>): float = jsNative
-    static member len(a: array<float>): float = jsNative
-    static member squaredLength(a: array<float>): float = jsNative
-    static member sqrLen(a: array<float>): float = jsNative
-    static member negate(out: array<float>, a: array<float>): array<float> = jsNative
-    static member normalize(out: array<float>, a: array<float>): array<float> = jsNative
-    static member dot(a: array<float>, b: array<float>): float = jsNative
-    static member str(a: array<float>): string = jsNative
+    static member crossLength(a: (float*float), b: (float*float)): float = jsNative
+    static member crossVZ(out: (float*float), vec: (float*float), zcomp: float): float = jsNative
+    static member crossZV(out: (float*float), zcomp: float, vec: (float*float)): float = jsNative
+    static member rotate(out: (float*float), a: (float*float), angle: float): unit = jsNative
+    static member rotate90cw(out: (float*float), a: (float*float)): float = jsNative
+    static member centroid(out: (float*float), a: (float*float), b: (float*float), c: (float*float)): (float*float) = jsNative
+    static member create(): (float*float) = jsNative
+    static member clone(a: (float*float)): (float*float) = jsNative
+    static member fromValues(x: float, y: float): (float*float) = jsNative
+    static member copy(out: (float*float), a: (float*float)): (float*float) = jsNative
+    static member set(out: (float*float), x: float, y: float): (float*float) = jsNative
+    static member toLocalFrame(out: (float*float), worldPoint: (float*float), framePosition: (float*float), frameAngle: float): unit = jsNative
+    static member toGlobalFrame(out: (float*float), localPoint: (float*float), framePosition: (float*float), frameAngle: float): unit = jsNative
+    static member add(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member subtract(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member sub(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member multiply(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member mul(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member divide(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member div(out: (float*float), a: (float*float), b: (float*float)): (float*float) = jsNative
+    static member scale(out: (float*float), a: (float*float), b: float): (float*float) = jsNative
+    static member distance(a: (float*float), b: (float*float)): float = jsNative
+    static member dist(a: (float*float), b: (float*float)): float = jsNative
+    static member squaredDistance(a: (float*float), b: (float*float)): float = jsNative
+    static member sqrDist(a: (float*float), b: (float*float)): float = jsNative
+    static member length(a: (float*float)): float = jsNative
+    static member len(a: (float*float)): float = jsNative
+    static member squaredLength(a: (float*float)): float = jsNative
+    static member sqrLen(a: (float*float)): float = jsNative
+    static member negate(out: (float*float), a: (float*float)): (float*float) = jsNative
+    static member normalize(out: (float*float), a: (float*float)): (float*float) = jsNative
+    static member dot(a: (float*float), b: (float*float)): float = jsNative
+    static member str(a: (float*float)): string = jsNative
 
 and [<AllowNullLiteral>] BodyOptions =
     abstract mass: float option with get, set
-    abstract position: array<float> option with get, set
-    abstract velocity: array<float> option with get, set
+    abstract position: (float*float) option with get, set
+    abstract velocity: (float*float) option with get, set
     abstract angle: float option with get, set
     abstract angularVelocity: float option with get, set
-    abstract force: array<float> option with get, set
+    abstract force: (float*float) option with get, set
     abstract angularForce: float option with get, set
     abstract fixedRotation: bool option with get, set
     abstract allowSleep: bool option with get, set
@@ -298,9 +297,11 @@ and [<AllowNullLiteral>] BodyOptions =
     abstract gravityScale: float option with get, set
     abstract sleepSpeedLimit: float option with get, set
     abstract sleepTimeLimit: float option with get, set
+    abstract damping: float option with get, set
+    abstract angularDamping: float option with get, set
 
 and [<AllowNullLiteral>] [<Import("Body","p2")>] Body(?options: BodyOptions) =
-    // inherit     EventEmitter()
+    inherit EventEmitter()
     member __.sleepyEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
     member __.sleepEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
     member __.wakeUpEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
@@ -320,17 +321,17 @@ and [<AllowNullLiteral>] [<Import("Body","p2")>] Body(?options: BodyOptions) =
     member __.invMassSolve with get(): float = jsNative and set(v: float): unit = jsNative
     member __.invInertiaSolve with get(): float = jsNative and set(v: float): unit = jsNative
     member __.fixedRotation with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.position with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.interpolatedPosition with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.position with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.interpolatedPosition with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.interpolatedAngle with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.previousPosition with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.previousPosition with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.previousAngle with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.velocity with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.vlambda with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.wlambda with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.velocity with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.vlambda with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.wlambda with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
     member __.angularVelocity with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.force with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.force with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.angularForce with get(): float = jsNative and set(v: float): unit = jsNative
     member __.damping with get(): float = jsNative and set(v: float): unit = jsNative
     member __.angularDamping with get(): float = jsNative and set(v: float): unit = jsNative
@@ -351,13 +352,14 @@ and [<AllowNullLiteral>] [<Import("Body","p2")>] Body(?options: BodyOptions) =
     member __.getAABB(): AABB = jsNative
     member __.updateAABB(): unit = jsNative
     member __.updateBoundingRadius(): unit = jsNative
-    member __.addShape(shape: Shape, ?offset: array<float>, ?angle: float): unit = jsNative
+    member __.addShape(shape: Shape, ?offset: (float*float), ?angle: float): unit = jsNative
     member __.removeShape(shape: Shape): bool = jsNative
     member __.updateMassProperties(): unit = jsNative
-    member __.applyForce(force: array<float>, worldPoint: array<float>): unit = jsNative
-    member __.toLocalFrame(out: array<float>, worldPoint: array<float>): unit = jsNative
-    member __.toWorldFrame(out: array<float>, localPoint: array<float>): unit = jsNative
-    member __.fromPolygon(path: array<array<float>>, ?options: obj): bool = jsNative
+    member __.applyForce(force: (float*float), ?relativePoint: (float*float)): unit = jsNative
+    member __.applyForceLocal(localForce: (float*float), ?localPoint: (float*float)): unit = jsNative
+    member __.toLocalFrame(out: (float*float), worldPoint: (float*float)): unit = jsNative
+    member __.toWorldFrame(out: (float*float), localPoint: (float*float)): unit = jsNative
+    member __.fromPolygon(path: array<(float*float)>, ?options: obj): bool = jsNative
     member __.adjustCenterOfMass(): unit = jsNative
     member __.setZeroForce(): unit = jsNative
     member __.resetConstraintVelocity(): unit = jsNative
@@ -365,7 +367,7 @@ and [<AllowNullLiteral>] [<Import("Body","p2")>] Body(?options: BodyOptions) =
     member __.wakeUp(): unit = jsNative
     member __.sleep(): unit = jsNative
     member __.sleepTick(time: float, dontSleep: bool, dt: float): unit = jsNative
-    member __.getVelocityFromPosition(story: array<float>, dt: float): array<float> = jsNative
+    member __.getVelocityFromPosition(story: (float*float), dt: float): (float*float) = jsNative
     member __.getAngularVelocityFromPosition(timeStep: float): float = jsNative
     member __.overlaps(body: Body): bool = jsNative
 
@@ -377,19 +379,19 @@ and [<AllowNullLiteral>] [<Import("Spring","p2")>] Spring(bodyA: Body, bodyB: Bo
     member __.applyForce(): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("LinearSpring","p2")>] LinearSpring() =
-    // inherit     Spring()
-    member __.localAnchorA with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.localAnchorB with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    inherit Spring(null, null)
+    member __.localAnchorA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.localAnchorB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.restLength with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.setWorldAnchorA(worldAnchorA: array<float>): unit = jsNative
-    member __.setWorldAnchorB(worldAnchorB: array<float>): unit = jsNative
-    member __.getWorldAnchorA(result: array<float>): array<float> = jsNative
-    member __.getWorldAnchorB(result: array<float>): array<float> = jsNative
+    member __.setWorldAnchorA(worldAnchorA: (float*float)): unit = jsNative
+    member __.setWorldAnchorB(worldAnchorB: (float*float)): unit = jsNative
+    member __.getWorldAnchorA(result: (float*float)): (float*float) = jsNative
+    member __.getWorldAnchorB(result: (float*float)): (float*float) = jsNative
     member __.applyForce(): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("Ray","p2")>] Ray(?options: obj) =
-    member __.from with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.``to`` with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.from with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.``to`` with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.length with get(): float = jsNative and set(v: float): unit = jsNative
     member __.CLOSEST with get(): float = jsNative and set(v: float): unit = jsNative
     member __.ANY with get(): float = jsNative and set(v: float): unit = jsNative
@@ -397,7 +399,7 @@ and [<AllowNullLiteral>] [<Import("Ray","p2")>] Ray(?options: obj) =
     member __.update(): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("RaycastResult","p2")>] RaycastResult() =
-    member __.normal with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.normal with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.shape with get(): Shape = jsNative and set(v: Shape): unit = jsNative
     member __.body with get(): Body = jsNative and set(v: Body): unit = jsNative
     member __.faceIndex with get(): float = jsNative and set(v: float): unit = jsNative
@@ -407,12 +409,12 @@ and [<AllowNullLiteral>] [<Import("RaycastResult","p2")>] RaycastResult() =
     member __.getHitDistance(): float = jsNative
     member __.hasHit(): bool = jsNative
     member __.stop(): bool = jsNative
-    member __.getHitPoint(out: array<float>, ray: Ray): unit = jsNative
+    member __.getHitPoint(out: (float*float), ray: Ray): unit = jsNative
     member __.shouldStop(ray: Ray): bool = jsNative
-    member __.set(normal: array<float>, shape: Shape, body: Body, fraction: float, faceIndex: float): bool = jsNative
+    member __.set(normal: (float*float), shape: Shape, body: Body, fraction: float, faceIndex: float): bool = jsNative
 
 and [<AllowNullLiteral>] [<Import("RotationalSpring","p2")>] RotationalSpring(bodyA: Body, bodyB: Body, ?options: obj) =
-    // inherit     Spring()
+    inherit Spring(bodyA, bodyB)
     member __.restAngle with get(): float = jsNative and set(v: float): unit = jsNative
 
 and [<AllowNullLiteral>] CapsuleOptions =
@@ -435,41 +437,41 @@ and [<AllowNullLiteral>] [<Import("Circle","p2")>] Circle(?options: CircleOption
 
 and [<AllowNullLiteral>] ConvexOptions =
     inherit SharedShapeOptions
-    abstract vertices: array<array<float>> option with get, set
-    abstract axes: array<array<float>> option with get, set
+    abstract vertices: array<(float*float)> option with get, set
+    abstract axes: array<(float*float)> option with get, set
 
 and [<AllowNullLiteral>] [<Import("Convex","p2")>] Convex(?options: ConvexOptions) =
     inherit Shape()
-    member __.vertices with get(): array<array<float>> = jsNative and set(v: array<array<float>>): unit = jsNative
-    member __.axes with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.centerOfMass with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
-    member __.triangles with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.vertices with get(): array<(float*float)> = jsNative and set(v: array<(float*float)>): unit = jsNative
+    member __.axes with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.centerOfMass with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
+    member __.triangles with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.boundingRadius with get(): float = jsNative and set(v: float): unit = jsNative
-    static member triangleArea(a: array<float>, b: array<float>, c: array<float>): float = jsNative
-    member __.projectOntoLocalAxis(localAxis: array<float>, result: array<float>): unit = jsNative
-    member __.projectOntoWorldAxis(localAxis: array<float>, shapeOffset: array<float>, shapeAngle: float, result: array<float>): unit = jsNative
+    static member triangleArea(a: (float*float), b: (float*float), c: (float*float)): float = jsNative
+    member __.projectOntoLocalAxis(localAxis: (float*float), result: (float*float)): unit = jsNative
+    member __.projectOntoWorldAxis(localAxis: (float*float), shapeOffset: (float*float), shapeAngle: float, result: (float*float)): unit = jsNative
     member __.updateCenterOfMass(): unit = jsNative
 
 and [<AllowNullLiteral>] HeightfieldOptions =
     inherit SharedShapeOptions
-    abstract heights: array<float> option with get, set
+    abstract heights: (float*float) option with get, set
     abstract minValue: float option with get, set
     abstract maxValue: float option with get, set
     abstract elementWidth: float option with get, set
 
 and [<AllowNullLiteral>] [<Import("Heightfield","p2")>] Heightfield(?options: HeightfieldOptions) =
     inherit Shape()
-    member __.data with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.data with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.maxValue with get(): float = jsNative and set(v: float): unit = jsNative
     member __.minValue with get(): float = jsNative and set(v: float): unit = jsNative
     member __.elementWidth with get(): float = jsNative and set(v: float): unit = jsNative
 
 and [<AllowNullLiteral>] SharedShapeOptions =
-    abstract position: array<float> option with get, set
+    abstract position: (float*float) option with get, set
     abstract angle: float option with get, set
-    abstract collisionGroup: float option with get, set
+    abstract collisionGroup: int option with get, set
     abstract collisionResponse: bool option with get, set
-    abstract collisionMask: float option with get, set
+    abstract collisionMask: int option with get, set
     abstract sensor: bool option with get, set
 
 and [<AllowNullLiteral>] ShapeOptions =
@@ -488,7 +490,7 @@ and [<AllowNullLiteral>] [<Import("Shape","p2")>] Shape(?options: ShapeOptions) 
     member __.HEIGHTFIELD with get(): float = jsNative and set(v: float): unit = jsNative
     member __.``type`` with get(): float = jsNative and set(v: float): unit = jsNative
     member __.id with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.position with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.position with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
     member __.boundingRadius with get(): float = jsNative and set(v: float): unit = jsNative
     member __.collisionGroup with get(): float = jsNative and set(v: float): unit = jsNative
@@ -500,7 +502,7 @@ and [<AllowNullLiteral>] [<Import("Shape","p2")>] Shape(?options: ShapeOptions) 
     member __.computeMomentOfInertia(mass: float): float = jsNative
     member __.updateBoundingRadius(): float = jsNative
     member __.updateArea(): unit = jsNative
-    member __.computeAABB(out: AABB, position: array<float>, angle: float): unit = jsNative
+    member __.computeAABB(out: AABB, position: (float*float), angle: float): unit = jsNative
 
 and [<AllowNullLiteral>] LineOptions =
     inherit SharedShapeOptions
@@ -526,7 +528,7 @@ and [<AllowNullLiteral>] [<Import("Box","p2")>] Box(?options: BoxOptions) =
     member __.height with get(): float = jsNative and set(v: float): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("Solver","p2")>] Solver(?options: obj, ?``type``: float) =
-    // inherit     EventEmitter()
+    inherit EventEmitter()
     member __.GS with get(): float = jsNative and set(v: float): unit = jsNative
     member __.ISLAND with get(): float = jsNative and set(v: float): unit = jsNative
     member __.``type`` with get(): float = jsNative and set(v: float): unit = jsNative
@@ -541,7 +543,7 @@ and [<AllowNullLiteral>] [<Import("Solver","p2")>] Solver(?options: obj, ?``type
     member __.removeAllEquations(): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("GSSolver","p2")>] GSSolver(?options: obj) =
-    // inherit     Solver()
+    inherit Solver()
     member __.iterations with get(): float = jsNative and set(v: float): unit = jsNative
     member __.tolerance with get(): float = jsNative and set(v: float): unit = jsNative
     member __.useZeroRHS with get(): bool = jsNative and set(v: bool): unit = jsNative
@@ -584,7 +586,7 @@ and [<AllowNullLiteral>] [<Import("Island","p2")>] Island() =
     member __.sleep(): bool = jsNative
 
 and [<AllowNullLiteral>] [<Import("IslandManager","p2")>] IslandManager() =
-    // inherit     Solver()
+    inherit Solver()
     member __.equations with get(): array<Equation> = jsNative and set(v: array<Equation>): unit = jsNative
     member __.islands with get(): array<Island> = jsNative and set(v: array<Island>): unit = jsNative
     member __.nodes with get(): array<IslandNode> = jsNative and set(v: array<IslandNode>): unit = jsNative
@@ -601,7 +603,7 @@ and [<AllowNullLiteral>] [<Import("IslandNode","p2")>] IslandNode(body: Body) =
     member __.reset(): unit = jsNative
 
 and [<AllowNullLiteral>] [<Import("World","p2")>] World(?options: obj) =
-    // inherit     EventEmitter()
+    inherit EventEmitter()
     member __.postStepEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
     member __.addBodyEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
     member __.removeBodyEvent with get(): obj = jsNative and set(v: obj): unit = jsNative
@@ -619,7 +621,7 @@ and [<AllowNullLiteral>] [<Import("World","p2")>] World(?options: obj) =
     member __.solver with get(): Solver = jsNative and set(v: Solver): unit = jsNative
     member __.narrowphase with get(): Narrowphase = jsNative and set(v: Narrowphase): unit = jsNative
     member __.islandManager with get(): IslandManager = jsNative and set(v: IslandManager): unit = jsNative
-    member __.gravity with get(): array<float> = jsNative and set(v: array<float>): unit = jsNative
+    member __.gravity with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.frictionGravity with get(): float = jsNative and set(v: float): unit = jsNative
     member __.useWorldGravityAsFrictionGravity with get(): bool = jsNative and set(v: bool): unit = jsNative
     member __.useFrictionGravityOnZeroGravity with get(): bool = jsNative and set(v: bool): unit = jsNative
@@ -657,7 +659,7 @@ and [<AllowNullLiteral>] [<Import("World","p2")>] World(?options: obj) =
     member __.enableBodyCollision(bodyA: Body, bodyB: Body): unit = jsNative
     member __.clear(): unit = jsNative
     member __.clone(): World = jsNative
-    member __.hitTest(worldPoint: array<float>, bodies: array<Body>, precision: float): array<Body> = jsNative
+    member __.hitTest(worldPoint: (float*float), bodies: array<Body>, precision: float): array<Body> = jsNative
     member __.setGlobalEquationParameters(parameters: obj): unit = jsNative
     member __.setGlobalStiffness(stiffness: float): unit = jsNative
     member __.setGlobalRelaxation(relaxation: float): unit = jsNative

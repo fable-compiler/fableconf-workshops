@@ -6,18 +6,6 @@ open Elmish
 open Elmish.Worker
 open Elmish.Debug
 
-let mutable private totalTime = 0.
-
-// Stop animation after a few seconds
-// so we can use the debugger
-let sendBuffer timestep _ (buffer: float[]) =
-    if totalTime < 8000. then
-        totalTime <- totalTime + timestep
-        // Add timesteps (in seconds) to array head
-        buffer.[0] <- timestep / 1000.
-        true
-    else false
-
 let inline receiveBuffer (ar: float[]) =
     // In Debug mode, copy the array to avoid issues with the debugger
     #if DEBUG
@@ -27,14 +15,11 @@ let inline receiveBuffer (ar: float[]) =
     #endif
 
 let init() =
-    // Data array. Contains all our data we need for rendering.
-    // It will be sent back and forth from the main thread and the worker thread.
-    // When it's sent from the worker, it's filled with position data of all bodies.
-    let buffer = Array.zeroCreate 0
     let info = View.initCanvas()
+    let buffer = State.createPhysicsBuffer()
 
     Program.mkProgram State.initModel State.update (View.render info)
-    //|> Program.withPhysicsWorker Init.workerURL buffer receiveBuffer sendBuffer
+    |> Program.withPhysicsWorker Init.workerURL buffer receiveBuffer State.updatePhysicsBuffer
     #if DEBUG
     |> Program.withDebuggerDebounce 200
     #endif
