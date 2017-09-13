@@ -12,6 +12,10 @@ type Ship =
       mutable Y: float
       mutable Angle: float }
 
+type Mace =
+    { mutable X: float
+      mutable Y: float }
+
 type Asteroid =
     { mutable X: float
       mutable Y: float
@@ -25,6 +29,7 @@ type ControlKeys =
 
 type Model =
     { Ship: Ship
+      Mace: Mace
       Asteroids: Asteroid[]
       Level: int
       Keys: ControlKeys
@@ -39,7 +44,7 @@ type Msg =
 /// It will be sent back and forth from the main thread and the worker thread.
 /// When it's sent from the worker, it's filled with position data of all bodies.
 let createPhysicsBuffer(): float[] =
-    Array.zeroCreate (3 (* ship *) + (3 * Init.maxLevel) (* asteroids *))
+    Array.zeroCreate (3 (* ship *) + 3 (* mace *) + (3 * Init.maxLevel) (* asteroids *))
 
 let sendWorkerMessage timestep (model: Model) (buffer: float[]) =
     { Buffer = buffer
@@ -72,6 +77,7 @@ let initModel(level) =
     let radius = Init.calculateRadius(level)
     let model =
         { Ship = { X=0.; Y=0.; Angle=0. }
+          Mace = { X=0.; Y=0. }
           Asteroids = Array.init level (fun _ -> createAsteroid radius)
           Level = level
           Keys = { Up=false; Left=false; Right=false }
@@ -89,12 +95,13 @@ let update (msg: Msg) (model: Model) =
             model.Ship.X     <- data.[0]
             model.Ship.Y     <- data.[1]
             model.Ship.Angle <- data.[2]
+            model.Mace.X     <- data.[3]
+            model.Mace.Y     <- data.[4]
             for i = 0 to model.Asteroids.Length - 1 do
                 let asteroid = model.Asteroids.[i]
-                asteroid.X     <- data.[3 + (i*3)]
-                asteroid.Y     <- data.[4 + (i*3)]
-                asteroid.Angle <- data.[5 + (i*3)]
-                //printfn "Asteroid %i: %f-%f-%f" i asteroid.X asteroid.Y asteroid.Angle
+                asteroid.X     <- data.[5 + (i*3)]
+                asteroid.Y     <- data.[6 + (i*3)]
+                asteroid.Angle <- data.[7 + (i*3)]
             model
         | KeyDown code ->
             match code with

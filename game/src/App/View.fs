@@ -1,5 +1,6 @@
 ﻿module App.View
 
+open System
 open Shared
 open State
 open Fable.Core
@@ -31,7 +32,6 @@ let initCanvas() =
       Height = canvas.height }
 
 let drawShip (ctx: CanvasRenderingContext2D) (model: Model) =
-    // if not hideShip then
     let x = model.Ship.X
     let y = model.Ship.Y
     let angle = model.Ship.Angle
@@ -50,7 +50,16 @@ let drawShip (ctx: CanvasRenderingContext2D) (model: Model) =
     ctx.closePath()
     ctx.stroke()
     ctx.restore()
-    
+
+let drawMace (ctx: CanvasRenderingContext2D) (model: Model) =
+    let mace = model.Mace
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(mace.X, mace.Y, Init.maceSize, 0., 2. * Math.PI, false)
+    ctx.closePath()
+    ctx.stroke()
+    ctx.restore()
+
 let drawAsteroids (ctx: CanvasRenderingContext2D) (model: Model) =
     let radius = Init.calculateRadius(model.Level)
     for asteroid in model.Asteroids do
@@ -67,7 +76,7 @@ let drawAsteroids (ctx: CanvasRenderingContext2D) (model: Model) =
         ctx.closePath()
         ctx.stroke()
         ctx.restore()
-    
+
 let drawBounds (ctx: CanvasRenderingContext2D) =
     ctx.beginPath()
     ctx.moveTo(-Init.spaceWidth / 2., -Init.spaceHeight / 2.)
@@ -93,6 +102,7 @@ let render(info: CanvasInfo) (model: Model) (dispatch: Msg->unit) =
         ctx.scale(info.Zoom, -info.Zoom)
 
         drawShip ctx model
+        drawMace ctx model
         drawAsteroids ctx model
         drawBounds ctx
 

@@ -19,6 +19,7 @@ let fixedTimestep = 1. / 60.
 type WorkerModel =
     { World: P2.World
       Ship: P2.Body
+      Mace: P2.Body
       Asteroids: P2.Body[] }
 
 let step (timestep: float) (world: P2.World) (events: string list) =
@@ -58,7 +59,7 @@ let warp (body: P2.Body) =
     body.previousPosition <- x, y
 
 let updatePhysics (model: WorkerModel) (msg: WorkerMsg) =
-    warp model.Ship
+    // warp model.Ship
     for asteroid in model.Asteroids do
         warp asteroid
 
@@ -77,12 +78,13 @@ let fillAndSendBuffer (model: WorkerModel) (buffer: float[]) =
     buffer.[0] <- fst model.Ship.interpolatedPosition
     buffer.[1] <- snd model.Ship.interpolatedPosition
     buffer.[2] <- model.Ship.interpolatedAngle
+    buffer.[3] <- fst model.Mace.interpolatedPosition
+    buffer.[4] <- snd model.Mace.interpolatedPosition
     for i = 0 to model.Asteroids.Length - 1 do
         let asteroid = model.Asteroids.[i]
-        buffer.[3 + (i*3)] <- fst asteroid.interpolatedPosition
-        buffer.[4 + (i*3)] <- snd asteroid.interpolatedPosition
-        buffer.[5 + (i*3)] <- asteroid.interpolatedAngle
-        //printfn "Asteroid %i: %f-%f-%f" i (fst asteroid.interpolatedPosition) (snd asteroid.interpolatedPosition) asteroid.interpolatedAngle
+        buffer.[5 + (i*3)] <- fst asteroid.interpolatedPosition
+        buffer.[6 + (i*3)] <- snd asteroid.interpolatedPosition
+        buffer.[7 + (i*3)] <- asteroid.interpolatedAngle
     postMessageAndTransferBuffer buffer buffer self
 
 let createAsteroidShape(radius: float): P2.Shape =
@@ -90,8 +92,8 @@ let createAsteroidShape(radius: float): P2.Shape =
         o.radius <- Some radius
         // Belongs to the ASTEROID group
         o.collisionGroup <- Some Init.ASTEROID
-        // Can collide with the BULLET or SHIP group
-        o.collisionMask <- Some (Init.BULLET ||| Init.SHIP)
+        // Can collide with the MACE or SHIP group
+        o.collisionMask <- Some (Init.MACE ||| Init.SHIP)
     ))
 
 let createAsteroids level (world: P2.World) =
@@ -120,11 +122,11 @@ let createAsteroids level (world: P2.World) =
     )
 
 let initModel(level: int): WorkerModel =
-    // Init physics world
     let world = P2.World(createObj["gravity" ==> (0.,0.)])
     // Turn off friction, we don't need it.
     world.defaultContactMaterial.friction <- 0.
-    // Add ship physics
+
+    // Add ship
     let shipShape = P2.Circle(makeOpts(fun o ->
         o.radius <- Some Init.shipSize
         // Belongs to the SHIP group
@@ -139,7 +141,32 @@ let initModel(level: int): WorkerModel =
     ))
     shipBody.addShape(shipShape)
     world.addBody(shipBody)
-    { World = world; Ship = shipBody; Asteroids = (createAsteroids level world) }
+
+    // Add mace
+    let maceShape = P2.Circle(makeOpts(fun o ->
+        o.radius <- Some Init.maceSize
+        o.collisionGroup <- Some Init.MACE
+        o.collisionMask <- Some Init.ASTEROID
+    ))
+    let maceBody = P2.Body(makeOpts(fun o ->
+        o.mass <- Some 5.
+        o.position <- Some (0., -Init.maceDistance)
+        o.damping <- Some 0.
+        o.angularDamping <- Some 0.
+    ))
+    maceBody.addShape(maceShape)
+    world.addBody(maceBody)
+
+    // Spring between ship and mace
+    let opts = createObj["restLength" ==> Init.maceDistance
+                         "stiffness"  ==> 8.]
+    P2.LinearSpring(shipBody, maceBody, opts)
+    |> world.addSpring
+
+    { World = world
+      Ship = shipBody
+      Mace = maceBody
+      Asteroids = (createAsteroids level world) }
 
 //let catchImpacts(world: P2.World) =
     //world.on("beginContact", fun evt ->

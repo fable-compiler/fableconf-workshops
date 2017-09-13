@@ -378,7 +378,7 @@ and [<AllowNullLiteral>] [<Import("Spring","p2")>] Spring(bodyA: Body, bodyB: Bo
     member __.bodyB with get(): Body = jsNative and set(v: Body): unit = jsNative
     member __.applyForce(): unit = jsNative
 
-and [<AllowNullLiteral>] [<Import("LinearSpring","p2")>] LinearSpring() =
+and [<AllowNullLiteral>] [<Import("LinearSpring","p2")>] LinearSpring(bodyA: Body, bodyB: Body, ?options: obj) =
     inherit Spring(null, null)
     member __.localAnchorA with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.localAnchorB with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative

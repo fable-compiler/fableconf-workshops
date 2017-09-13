@@ -20,6 +20,8 @@ module Init =
     let [<Literal>] strokeStyle = "white"
     let [<Literal>] shipSize = 0.3
     let [<Literal>] shipTurnSpeed = 4.
+    let [<Literal>] maceSize = 0.5
+    let [<Literal>] maceDistance = 2.5
     let [<Literal>] spaceWidth = 16.
     let [<Literal>] spaceHeight = 9.
     let [<Literal>] maxAsteroidSpeed = 2.
@@ -29,7 +31,7 @@ module Init =
 
     // These will be used in a binary mask so use powers of 2
     let SHIP =     2
-    let BULLET =   4
+    let MACE =     4
     let ASTEROID = 8
 
     let calculateRadius(level: int) =
