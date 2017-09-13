@@ -121,6 +121,17 @@ let createAsteroids level (world: P2.World) =
         asteroidBody
     )
 
+let createBound(x: float, y: float, angle: float) =
+    let shape = P2.Plane()
+    let body = P2.Body(makeOpts(fun o ->
+        o.position <- Some (x, y)
+        o.angle <- Some angle
+    ))
+    body.addShape(shape)
+    shape.collisionGroup <- Init.BOUND
+    shape.collisionMask <- Init.SHIP ||| Init.MACE
+    body
+
 let initModel(level: int): WorkerModel =
     let world = P2.World(createObj["gravity" ==> (0.,0.)])
     // Turn off friction, we don't need it.
@@ -129,10 +140,8 @@ let initModel(level: int): WorkerModel =
     // Add ship
     let shipShape = P2.Circle(makeOpts(fun o ->
         o.radius <- Some Init.shipSize
-        // Belongs to the SHIP group
         o.collisionGroup <- Some Init.SHIP
-        // Only collide with the ASTEROID group
-        o.collisionMask <- Some Init.ASTEROID
+        o.collisionMask <- Some(Init.ASTEROID ||| Init.BOUND)
     ))
     let shipBody = P2.Body(makeOpts(fun o ->
         o.mass <- Some 1.
@@ -146,7 +155,7 @@ let initModel(level: int): WorkerModel =
     let maceShape = P2.Circle(makeOpts(fun o ->
         o.radius <- Some Init.maceSize
         o.collisionGroup <- Some Init.MACE
-        o.collisionMask <- Some Init.ASTEROID
+        o.collisionMask <- Some(Init.ASTEROID ||| Init.BOUND)
     ))
     let maceBody = P2.Body(makeOpts(fun o ->
         o.mass <- Some 5.
@@ -162,6 +171,12 @@ let initModel(level: int): WorkerModel =
                          "stiffness"  ==> 8.]
     P2.LinearSpring(shipBody, maceBody, opts)
     |> world.addSpring
+
+    // Bounds
+    world.addBody(createBound(0.,  Init.spaceHeight / 2., Math.PI))
+    world.addBody(createBound(0., -Init.spaceHeight / 2., 0.))
+    world.addBody(createBound( Init.spaceWidth / 2., 0., Math.PI / 2.))
+    world.addBody(createBound(-Init.spaceWidth / 2., 0., 3. * Math.PI / 2.))
 
     { World = world
       Ship = shipBody

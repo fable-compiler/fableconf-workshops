@@ -33,6 +33,7 @@ module Init =
     let SHIP =     2
     let MACE =     4
     let ASTEROID = 8
+    let BOUND =    16
 
     let calculateRadius(level: int) =
         asteroidRadius * (float (maxLevel - level)) / float maxLevel

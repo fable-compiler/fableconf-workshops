@@ -493,9 +493,9 @@ and [<AllowNullLiteral>] [<Import("Shape","p2")>] Shape(?options: ShapeOptions) 
     member __.position with get(): (float*float) = jsNative and set(v: (float*float)): unit = jsNative
     member __.angle with get(): float = jsNative and set(v: float): unit = jsNative
     member __.boundingRadius with get(): float = jsNative and set(v: float): unit = jsNative
-    member __.collisionGroup with get(): float = jsNative and set(v: float): unit = jsNative
+    member __.collisionGroup with get(): int = jsNative and set(v: int): unit = jsNative
     member __.collisionResponse with get(): bool = jsNative and set(v: bool): unit = jsNative
-    member __.collisionMask with get(): float = jsNative and set(v: float): unit = jsNative
+    member __.collisionMask with get(): int = jsNative and set(v: int): unit = jsNative
     member __.material with get(): Material = jsNative and set(v: Material): unit = jsNative
     member __.area with get(): float = jsNative and set(v: float): unit = jsNative
     member __.sensor with get(): bool = jsNative and set(v: bool): unit = jsNative
