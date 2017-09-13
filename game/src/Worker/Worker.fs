@@ -16,7 +16,7 @@ let makeOpts (f: 'T->unit) =
 // State and fixed values
 let fixedTimestep = 1. / 60.
 
-type Model =
+type WorkerModel =
     { World: P2.World
       Ship: P2.Body
       Asteroids: P2.Body[] }
@@ -37,7 +37,7 @@ let step (timestep: float) (world: P2.World) (events: string list) =
     for evName, lis in listeners do
         world.off(evName, lis) |> ignore
     evResults
-    
+
 let warp (body: P2.Body) =
     let x, y = body.position
     let x =
@@ -57,33 +57,33 @@ let warp (body: P2.Body) =
     body.position <- x, y
     body.previousPosition <- x, y
 
-let updatePhysics (model: Model) (buffer: float[]) =
+let updatePhysics (model: WorkerModel) (msg: WorkerMsg) =
     warp model.Ship
     for asteroid in model.Asteroids do
         warp asteroid
 
-    let timestep = buffer.[1]
+    let timestep = msg.Timestep
     let _ = step timestep model.World ["impact"]
 
-    let keyUp    = buffer.[2]
-    let keyLeft  = buffer.[3]
-    let keyRight = buffer.[4]
+    let keyUp    = if msg.KeyUp    then 1. else 0.
+    let keyLeft  = if msg.KeyLeft  then 1. else 0.
+    let keyRight = if msg.KeyRight then 1. else 0.
     // Thrust: add some force in the ship direction
     model.Ship.applyForceLocal((0., keyUp * 2.))
     // Set turn velocity of ship
     model.Ship.angularVelocity <- (keyLeft - keyRight) * Init.shipTurnSpeed
 
-let fillAndSendArray (model: Model) (buffer: float[]) =
-    buffer.[5] <- fst model.Ship.interpolatedPosition
-    buffer.[6] <- snd model.Ship.interpolatedPosition
-    buffer.[7] <- model.Ship.interpolatedAngle
+let fillAndSendBuffer (model: WorkerModel) (buffer: float[]) =
+    buffer.[0] <- fst model.Ship.interpolatedPosition
+    buffer.[1] <- snd model.Ship.interpolatedPosition
+    buffer.[2] <- model.Ship.interpolatedAngle
     for i = 0 to model.Asteroids.Length - 1 do
         let asteroid = model.Asteroids.[i]
-        buffer.[8  + (i*3)] <- fst asteroid.interpolatedPosition
-        buffer.[9  + (i*3)] <- snd asteroid.interpolatedPosition
-        buffer.[10 + (i*3)] <- asteroid.interpolatedAngle
+        buffer.[3 + (i*3)] <- fst asteroid.interpolatedPosition
+        buffer.[4 + (i*3)] <- snd asteroid.interpolatedPosition
+        buffer.[5 + (i*3)] <- asteroid.interpolatedAngle
         //printfn "Asteroid %i: %f-%f-%f" i (fst asteroid.interpolatedPosition) (snd asteroid.interpolatedPosition) asteroid.interpolatedAngle
-    transferArray buffer self
+    postMessageAndTransferBuffer buffer buffer self
 
 let createAsteroidShape(radius: float): P2.Shape =
     upcast P2.Circle(makeOpts(fun o ->
@@ -119,7 +119,7 @@ let createAsteroids level (world: P2.World) =
         asteroidBody
     )
 
-let initModel(level: int): Model =
+let initModel(level: int): WorkerModel =
     // Init physics world
     let world = P2.World(createObj["gravity" ==> (0.,0.)])
     // Turn off friction, we don't need it.
@@ -169,16 +169,15 @@ let initModel(level: int): Model =
 let init() =
     let mutable model = None
     observeWorker self
-    |> Observable.add (fun (buffer: float[]) ->
+    |> Observable.add (fun (msg: WorkerMsg) ->
         let model =
             match model with
             | Some m -> m
             | None ->
-                let level = buffer.[0]
-                let m = initModel (int level)
+                let m = initModel msg.Level
                 model <- Some m
                 m
-        updatePhysics model buffer
-        fillAndSendArray model buffer)
+        updatePhysics model msg
+        fillAndSendBuffer model msg.Buffer)
 
 init()

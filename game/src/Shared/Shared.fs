@@ -4,11 +4,20 @@ open System
 open Fable.Core
 open Fable.Import
 
+// Use a Pojo recrod so it serializes well in JS
+type [<Pojo>] WorkerMsg =
+    { Buffer: float[]
+      Timestep: float
+      Level: int
+      KeyUp: bool
+      KeyLeft: bool
+      KeyRight: bool }
+
 module Init =
     let [<Literal>] lives = 3
     let [<Literal>] maxLevel = 10
     let [<Literal>] fillStyle = "white"
-    let [<Literal>] strokeStyle = "white"    
+    let [<Literal>] strokeStyle = "white"
     let [<Literal>] shipSize = 0.3
     let [<Literal>] shipTurnSpeed = 4.
     let [<Literal>] spaceWidth = 16.
@@ -37,11 +46,11 @@ module Keys =
 
 // Don't make this directly public to prevent
 // double evaluation of arguments
-[<Emit("$1.postMessage($0, [$0.buffer])")>]
-let private transferArrayJs (ar: 'T[]) (worker: Browser.Worker): unit = jsNative
+[<Emit("$2.postMessage($0, [$1.buffer])")>]
+let private postMessageAndTransferBufferJs (msg: 'Msg) (ar: float[]) (worker: Browser.Worker): unit = jsNative
 
-let transferArray (ar: 'T[]) (worker: Browser.Worker): unit =
-    transferArrayJs ar worker
+let postMessageAndTransferBuffer<'Msg> (msg: 'Msg) (ar: float[]) (worker: Browser.Worker): unit =
+    postMessageAndTransferBufferJs msg ar worker
 
 /// TODO: This just overwrites the worker.onmessage field, it should
 /// check if there's another listener and wrap it if necessary

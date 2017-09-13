@@ -19,7 +19,7 @@ let init() =
     let buffer = State.createPhysicsBuffer()
 
     Program.mkProgram (fun () -> State.initModel 1) State.update (View.render info)
-    |> Program.withPhysicsWorker Init.workerURL buffer receiveBuffer State.updatePhysicsBuffer
+    |> Program.withPhysicsWorker Init.workerURL buffer receiveBuffer State.sendWorkerMessage
     #if DEBUG
     |> Program.withDebuggerDebounce 200
     #endif
