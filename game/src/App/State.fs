@@ -42,12 +42,12 @@ let createPhysicsBuffer(): float[] =
     Array.zeroCreate (3 (* ship *) + (3 * Init.maxLevel) (* asteroids *))
 
 let sendWorkerMessage timestep (model: Model) (buffer: float[]) =
-    Some { Buffer = buffer
-           Timestep = timestep / 1000. // Convert to ms
-           Level = model.Level
-           KeyUp = model.Keys.Up
-           KeyLeft = model.Keys.Left
-           KeyRight = model.Keys.Right }
+    { Buffer = buffer
+      Timestep = timestep / 1000. // Convert to ms
+      Level = model.Level
+      KeyUp = model.Keys.Up
+      KeyLeft = model.Keys.Left
+      KeyRight = model.Keys.Right }
 
 let createAsteroid(radius: float): Asteroid =
     { X = 0.
