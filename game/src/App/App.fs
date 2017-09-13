@@ -18,7 +18,7 @@ let init() =
     let info = View.initCanvas()
     let buffer = State.createPhysicsBuffer()
 
-    Program.mkProgram State.initModel State.update (View.render info)
+    Program.mkProgram (fun () -> State.initModel 1) State.update (View.render info)
     |> Program.withPhysicsWorker Init.workerURL buffer receiveBuffer State.updatePhysicsBuffer
     #if DEBUG
     |> Program.withDebuggerDebounce 200

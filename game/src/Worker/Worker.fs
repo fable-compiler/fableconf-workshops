@@ -7,13 +7,19 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Shared
 
+// Helpers
 let [<Global>] self: Browser.Worker = jsNative
 
-let fixedTimestep = 1. / 60.
-
-// Helpers
 let makeOpts (f: 'T->unit) =
     let opts = createEmpty<'T> in f opts; opts
+
+// State and fixed values
+let fixedTimestep = 1. / 60.
+
+type Model =
+    { World: P2.World
+      Ship: P2.Body
+      Asteroids: P2.Body[] }
 
 let step (timestep: float) (world: P2.World) (events: string list) =
     // TODO: Make sure events elements are distinct?
@@ -32,53 +38,46 @@ let step (timestep: float) (world: P2.World) (events: string list) =
         world.off(evName, lis) |> ignore
     evResults
 
-let updatePhysics (shipBody: P2.Body) (world: P2.World) (buffer: float[]) =
-    let timestep = buffer.[0]
-    let keyUp    = buffer.[1]
-    let keyLeft  = buffer.[2]
-    let keyRight = buffer.[3]
-    let _ = step timestep world ["impact"]
+let updatePhysics (model: Model) (buffer: float[]) =
+    let timestep = buffer.[1]
+    let keyUp    = buffer.[2]
+    let keyLeft  = buffer.[3]
+    let keyRight = buffer.[4]
+    let _ = step timestep model.World ["impact"]
     // Thrust: add some force in the ship direction
-    shipBody.applyForceLocal((0., keyUp * 2.))
+    model.Ship.applyForceLocal((0., keyUp * 2.))
     // Set turn velocity of ship
-    shipBody.angularVelocity <- (keyLeft - keyRight) * Init.shipTurnSpeed
+    model.Ship.angularVelocity <- (keyLeft - keyRight) * Init.shipTurnSpeed
 
-let fillAndSendArray (shipBody: P2.Body) (buffer: float[]) =
-    buffer.[4] <- fst shipBody.interpolatedPosition
-    buffer.[5] <- snd shipBody.interpolatedPosition
-    buffer.[6] <- shipBody.interpolatedAngle
+let fillAndSendArray (model: Model) (buffer: float[]) =
+    buffer.[5] <- fst model.Ship.interpolatedPosition
+    buffer.[6] <- snd model.Ship.interpolatedPosition
+    buffer.[7] <- model.Ship.interpolatedAngle
+    for i = 0 to model.Asteroids.Length - 1 do
+        let asteroid = model.Asteroids.[i]
+        buffer.[8  + (i*3)] <- fst asteroid.interpolatedPosition
+        buffer.[9  + (i*3)] <- snd asteroid.interpolatedPosition
+        buffer.[10 + (i*3)] <- asteroid.interpolatedAngle
+        //printfn "Asteroid %i: %f-%f-%f" i (fst asteroid.interpolatedPosition) (snd asteroid.interpolatedPosition) asteroid.interpolatedAngle
     transferArray buffer self
 
-let rand() =
-    JS.Math.random() - 0.5
-
-let createAsteroidShape(level): P2.Shape =
+let createAsteroidShape(radius: float): P2.Shape =
     upcast P2.Circle(makeOpts(fun o ->
-        o.radius <- Init.asteroidRadius * (Init.numAsteroidLevels - float level) / Init.numAsteroidLevels |> Some
+        o.radius <- Some radius
         // Belongs to the ASTEROID group
         o.collisionGroup <- Some Init.ASTEROID
         // Can collide with the BULLET or SHIP group
         o.collisionMask <- Some (Init.BULLET ||| Init.SHIP)
     ))
 
-// Adds random .verts to an asteroid body
-let addAsteroidVerts(asteroidBody: P2.Body) =
-    let radius = (asteroidBody.shapes.[0] :?> P2.Circle).radius
-    asteroidBody?verts <-
-        [|0. .. (Init.numAsteroidVerts - 1.)|]
-        |> Array.map (fun j ->
-            let angle = (float j) * 2. * Math.PI / Init.numAsteroidVerts
-            let xv = radius * cos(angle) + rand() * radius * 0.4
-            let yv = radius * sin(angle) + rand() * radius * 0.4
-            xv, yv)
-
-let addAsteroids() =
-    for i = 0 to (Init.level - 1) do
-        let x = rand() * Init.spaceWidth
-        let y = rand() * Init.spaceHeight
-        let vx = rand() * Init.maxAsteroidSpeed
-        let vy = rand() * Init.maxAsteroidSpeed
-        let va = rand() * Init.maxAsteroidSpeed
+let createAsteroids level (world: P2.World) =
+    let radius = Init.calculateRadius level
+    Array.init level (fun i ->
+        let x  = randMinus0_5To0_5() * Init.spaceWidth
+        let y  = randMinus0_5To0_5() * Init.spaceHeight
+        let vx = randMinus0_5To0_5() * Init.maxAsteroidSpeed
+        let vy = randMinus0_5To0_5() * Init.maxAsteroidSpeed
+        let va = randMinus0_5To0_5() * Init.maxAsteroidSpeed
         // TODO: Avoid the ship
         // Create asteroid body
         let asteroidBody = P2.Body(makeOpts(fun o ->
@@ -86,16 +85,17 @@ let addAsteroids() =
             o.position <- Some (x, y)
             o.velocity <- Some (vx, vy)
             o.angularVelocity <- Some va
-            //o.damping <- Some 0.
-            //o.angularDamping <- Some 0.
+            o.damping <- Some 0.
+            o.angularDamping <- Some 0.
         ))
-        asteroidBody.addShape(createAsteroidShape(0.))
+        asteroidBody.addShape(createAsteroidShape radius)
         // asteroids.push(asteroidBody)
         // addBodies.push(asteroidBody)
-        //asteroidBody?level <- 1
-        addAsteroidVerts(asteroidBody)
+        world.addBody(asteroidBody)
+        asteroidBody
+    )
 
-let createWorld(): P2.Body * P2.World =
+let initModel(level: int): Model =
     // Init physics world
     let world = P2.World(createObj["gravity" ==> (0.,0.)])
     // Turn off friction, we don't need it.
@@ -115,12 +115,7 @@ let createWorld(): P2.Body * P2.World =
     ))
     shipBody.addShape(shipShape)
     world.addBody(shipBody)
-    // Init asteroid shapes
-    //addAsteroids()
-    // Update the text boxes
-    //updateLevel()
-    //updateLives()
-    shipBody, world
+    { World = world; Ship = shipBody; Asteroids = (createAsteroids level world) }
 
 //let catchImpacts(world: P2.World) =
     //world.on("beginContact", fun evt ->
@@ -148,11 +143,18 @@ let createWorld(): P2.Body * P2.World =
     //) |> ignore
 
 let init() =
-    let shipBody, world = createWorld()
+    let mutable model = None
     observeWorker self
     |> Observable.add (fun (buffer: float[]) ->
-        printfn "%f" buffer.[1]
-        updatePhysics shipBody world buffer
-        fillAndSendArray shipBody buffer)
+        let model =
+            match model with
+            | Some m -> m
+            | None ->
+                let level = buffer.[0]
+                let m = initModel (int level)
+                model <- Some m
+                m
+        updatePhysics model buffer
+        fillAndSendArray model buffer)
 
 init()

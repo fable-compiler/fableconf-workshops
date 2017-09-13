@@ -51,6 +51,23 @@ let drawShip (ctx: CanvasRenderingContext2D) (model: Model) =
     ctx.stroke()
     ctx.restore()
     
+let drawAsteroids (ctx: CanvasRenderingContext2D) (model: Model) =
+    let radius = Init.calculateRadius(model.Level)
+    for asteroid in model.Asteroids do
+        ctx.save()
+        ctx.translate(asteroid.X, asteroid.Y)  // Translate to the center
+        ctx.rotate(asteroid.Angle)
+        ctx.beginPath()
+        for j = 0 to asteroid.Vertices.Length - 1 do
+            let v = asteroid.Vertices.[j]
+            if j = 0 then
+                ctx.moveTo(fst v, snd v)
+            else
+                ctx.lineTo(fst v, snd v)
+        ctx.closePath()
+        ctx.stroke()
+        ctx.restore()
+    
 let drawBounds (ctx: CanvasRenderingContext2D) =
     ctx.beginPath()
     ctx.moveTo(-Init.spaceWidth / 2., -Init.spaceHeight / 2.)
@@ -76,6 +93,7 @@ let render(info: CanvasInfo) (model: Model) (dispatch: Msg->unit) =
         ctx.scale(info.Zoom, -info.Zoom)
 
         drawShip ctx model
+        drawAsteroids ctx model
         drawBounds ctx
 
         // Restore transform

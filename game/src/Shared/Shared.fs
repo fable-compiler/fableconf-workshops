@@ -5,8 +5,8 @@ open Fable.Core
 open Fable.Import
 
 module Init =
-    let [<Literal>] level = 1
     let [<Literal>] lives = 3
+    let [<Literal>] maxLevel = 10
     let [<Literal>] fillStyle = "white"
     let [<Literal>] strokeStyle = "white"    
     let [<Literal>] shipSize = 0.3
@@ -15,7 +15,6 @@ module Init =
     let [<Literal>] spaceHeight = 9.
     let [<Literal>] maxAsteroidSpeed = 2.
     let [<Literal>] asteroidRadius = 0.9
-    let [<Literal>] numAsteroidLevels = 4.
     let [<Literal>] numAsteroidVerts = 10.
     let [<Literal>] workerURL = "/build/worker.js"
 
@@ -23,6 +22,9 @@ module Init =
     let SHIP =     2
     let BULLET =   4
     let ASTEROID = 8
+
+    let calculateRadius(level: int) =
+        asteroidRadius * (float (maxLevel - level)) / float maxLevel
 
 [<RequireQualifiedAccess>]
 module Keys =
@@ -51,3 +53,10 @@ let observeWorker<'T> (worker: Browser.Worker) =
                 null)
             { new IDisposable with
                 member x.Dispose() = worker.onmessage <- null } }
+
+
+let private r = Random()
+
+/// Create a random number between -0.5 to 0.5
+let randMinus0_5To0_5() =
+    r.NextDouble() - 0.5
