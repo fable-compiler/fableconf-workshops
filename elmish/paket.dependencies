@@ -8,7 +8,7 @@ nuget Fable.Elmish.React
 nuget Fable.Elmish.Browser
 nuget Fable.Elmish.Debugger
 nuget Fable.React prerelease
-nuget Fulma prerelease
+nuget Fulma 0.2.0-beta-004
 nuget Fulma.Extensions prerelease
 nuget Fable.PowerPack
 nuget Fable.Import.Express

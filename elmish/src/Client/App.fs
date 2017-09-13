@@ -8,7 +8,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Types
 open App.State
-open Fulma.Layout
+open Fulma.Layouts
 open Fulma.Components
 open Fulma.Elements
 open Fable.Helpers.React
@@ -81,9 +81,8 @@ open Elmish.Debug
 Program.mkProgram init update root
 |> Program.toNavigable (parseHash pageParser) urlUpdate
 |> Program.withReact "elmish-app"
-//-:cnd:noEmit
 #if DEBUG
 |> Program.withDebugger
+|> Program.withConsoleTrace
 #endif
-//+:cnd:noEmit
 |> Program.run
