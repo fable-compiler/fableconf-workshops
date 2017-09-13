@@ -79,7 +79,7 @@ let drawBounds (ctx: CanvasRenderingContext2D) =
     ctx.stroke()
 
 let render(info: CanvasInfo) (model: Model) (dispatch: Msg->unit) =
-    //if model.Initialized then
+    if model.Initialized then
         let ctx = info.Context
         // Clear the canvas
         ctx.clearRect(0., 0., info.Width, info.Height)

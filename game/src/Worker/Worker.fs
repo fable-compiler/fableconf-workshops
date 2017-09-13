@@ -37,13 +37,37 @@ let step (timestep: float) (world: P2.World) (events: string list) =
     for evName, lis in listeners do
         world.off(evName, lis) |> ignore
     evResults
+    
+let warp (body: P2.Body) =
+    let x, y = body.position
+    let x =
+        if x > Init.spaceWidth / 2.
+        then -Init.spaceWidth / 2.
+        elif x < -Init.spaceWidth / 2.
+        then Init.spaceWidth / 2.
+        else x
+    let y =
+        if y > Init.spaceHeight / 2.
+        then -Init.spaceHeight / 2.
+        elif y < -Init.spaceHeight / 2.
+        then Init.spaceHeight / 2.
+        else y
+    // Set the previous position too,
+    // to not mess up the p2 body interpolation
+    body.position <- x, y
+    body.previousPosition <- x, y
 
 let updatePhysics (model: Model) (buffer: float[]) =
+    warp model.Ship
+    for asteroid in model.Asteroids do
+        warp asteroid
+
     let timestep = buffer.[1]
+    let _ = step timestep model.World ["impact"]
+
     let keyUp    = buffer.[2]
     let keyLeft  = buffer.[3]
     let keyRight = buffer.[4]
-    let _ = step timestep model.World ["impact"]
     // Thrust: add some force in the ship direction
     model.Ship.applyForceLocal((0., keyUp * 2.))
     // Set turn velocity of ship
