@@ -36,7 +36,7 @@ let update msg model =
         model, Cmd.none
 
     | Cancel ->
-        let url = AdminUserPage.Index |> AdminPage.User |> Admin
+        let url = AdminUserPage.Index |> AdminPage.User |> Admin |> AuthPage
         model, Navigation.newUrl (toHash url)
 
     | ChangeFirstname value ->

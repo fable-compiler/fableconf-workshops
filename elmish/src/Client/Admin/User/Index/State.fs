@@ -23,9 +23,9 @@ let update msg model =
         model, Cmd.none
 
     | ShowDetail id ->
-        let url = AdminUserPage.Edit >> AdminPage.User >> Admin
+        let url = AdminUserPage.Edit >> AdminPage.User >> Admin >> AuthPage
         model, Navigation.newUrl (toHash (url id))
 
     | CreateUser ->
-        let url = AdminUserPage.Create |> AdminPage.User |> Admin
+        let url = AdminUserPage.Create |> AdminPage.User |> Admin |> AuthPage
         model, Navigation.newUrl (toHash url)

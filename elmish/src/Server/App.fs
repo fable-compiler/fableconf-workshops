@@ -6,6 +6,7 @@ open Fable.Import
 open Fable.Import.Express
 open Helpers
 open Database
+module Validation = Shared.Validation
 
 let app = express.Invoke()
 
@@ -98,8 +99,34 @@ app
         res.setHeader("Content-Type", !^"application/json")
         Express.Sugar.Response.send (toJson "success") res
     )
-// |> Express.get
-//         ""
+|> Express.Sugar.post
+    "/sign-in"
+    (fun req res ->
+        let data = unbox<Shared.Types.SignInData> req.body
+
+        let user =
+            Database.Users
+                .find(
+                    createObj [
+                        "Email" ==> data.Email
+                        "Password" ==> data.Password
+                    ]
+                ).value()
+
+        res.setHeader("Content-Type", !^"application/json")
+
+        let result : Shared.Types.GenericJsonResponse =
+            if isNull user then
+                { Code = Validation.SignIn.UserNotFound
+                  Data = null }
+            else
+                let data : Shared.Types.SignInResponse =
+                    { Token = "I am a dummy token for now" }
+                { Code = Validation.SignIn.SignInSuccess
+                  Data = data :> obj }
+
+        Express.Sugar.Response.send (toJson result) res
+    )
 |> ignore
 
 // Start the server

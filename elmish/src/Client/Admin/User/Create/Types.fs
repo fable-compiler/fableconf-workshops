@@ -2,26 +2,6 @@ module Admin.User.Create.Types
 
 open Okular.Lens
 
-type StringField =
-    { Value : string
-      Error : string option }
-
-    static member Empty =
-        { Value = ""
-          Error = None }
-
-    static member Initial value =
-        { Value = value
-          Error = None }
-
-    static member ValueLens =
-        { Get = fun (r : StringField) -> r.Value
-          Set = fun v (r : StringField) -> { r with Value = v } }
-
-    static member ErrorLens =
-        { Get = fun (r : StringField) -> r.Error
-          Set = fun v (r : StringField) -> { r with Error = v } }
-
 type FormData =
     { Firstname : StringField
       Surname : StringField

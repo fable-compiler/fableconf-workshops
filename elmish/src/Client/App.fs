@@ -13,6 +13,7 @@ open Fulma.Components
 open Fulma.Elements
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
+open Fulma.BulmaClasses
 
 importAll "./sass/main.sass"
 
@@ -25,11 +26,13 @@ let genNavbarItem txt refPage currentPage =
 let navbarAdminLink currentPage =
     let isActive =
         match currentPage with
-        | Admin _ -> true
+        | AuthPage (Admin _) -> true
         | _ -> false
+
+    let url = AdminPage.Index |> Admin |> AuthPage
     Navbar.link_a [ if isActive then
                         yield Navbar.Link.isActive
-                    yield Navbar.Link.props [ Href (toHash (Admin AdminPage.Index)) ] ]
+                    yield Navbar.Link.props [ Href (toHash url) ] ]
         [ str "Admin" ]
 
 let navbar currentPage =
@@ -49,30 +52,37 @@ let navbar currentPage =
                                     Navbar.Item.isHoverable ]
                     [ navbarAdminLink currentPage
                       Navbar.dropdown_div [ ]
-                        [ genNavbarItem "Users" (Admin (AdminPage.User AdminUserPage.Index)) currentPage ] ] ] ] ]
+                        [ genNavbarItem "Users" (AdminUserPage.Index |> AdminPage.User |> Admin |> AuthPage) currentPage ] ] ] ] ]
 
 
 let root (model: Model) dispatch =
 
-    // let pageHtml =
-    //     function
-    //     | Page.About -> Info.View.root
-    //     | Counter -> Counter.View.root model.Counter (CounterMsg >> dispatch)
-    //     | CounterList -> CounterList.View.root model.CounterList (CounterListMsg >> dispatch)
-    //     | Home -> Home.View.root model.Home (HomeMsg >> dispatch)
+    match model.CurrentPage with
+    | SignIn ->
+        Hero.hero [ Hero.isFullHeight ]
+            [ Hero.head [ ]
+                [ Container.container [ ]
+                    [ Columns.columns [ Columns.isCentered ]
+                        [ Column.column [ Column.Width.isHalf ]
+                            [ img [ Src "/img/logo.svg" ] ] ]
+                      Columns.columns [ Columns.isCentered ]
+                        [ Heading.h3 [ Heading.customClass Bulma.Properties.Alignment.HasTextCentered ]
+                            [ str "Sign-in to access the application" ] ] ] ]
+              Hero.body [  ]
+                [ Container.container [ ]
+                    [ SignIn.View.root model.SignIn (SignInMsg >> dispatch ) ] ] ]
 
-    let pageHtml =
-        function
-        | Home -> Home.View.root model.Home (HomeMsg >> dispatch)
+    | AuthPage authPage ->
+        match authPage with
         | Admin adminPage -> Admin.Dispatcher.View.root model.AdminModel adminPage (AdminMsg >> dispatch)
+        |> (fun pageView ->
+            Container.container [ ]
+                [ navbar model.CurrentPage
+                  pageView ]
+        )
 
-    div
-        [ ClassName "container" ]
-        [ navbar model.CurrentPage
-          section [ ClassName "section" ]
-            [ ]
-          pageHtml model.CurrentPage
-        ]
+    | Home -> Home.View.root model.Home (HomeMsg >> dispatch)
+
 
 open Elmish.React
 open Elmish.Debug

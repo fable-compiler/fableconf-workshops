@@ -9,6 +9,10 @@
     <Compile Include="Logger.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Global.fs" />
+    <Compile Include="SignIn/Types.fs" />
+    <Compile Include="SignIn/Rest.fs" />
+    <Compile Include="SignIn/State.fs" />
+    <Compile Include="SignIn/View.fs" />
     <Compile Include="Home/Types.fs" />
     <Compile Include="Home/State.fs" />
     <Compile Include="Home/View.fs" />

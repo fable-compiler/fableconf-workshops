@@ -5,6 +5,27 @@ open Shared.Types
 
 let [<Literal>] FieldRequired = "This field is required"
 
+module SignIn =
+
+    let [<Literal>] UserNotFound = "user_not_found"
+    let [<Literal>] SignInSuccess = "sign_in_success"
+
+    let verifyEmail email =
+        if String.IsNullOrWhiteSpace email then
+            Some FieldRequired
+        else
+            None
+
+    let verifyPassword password =
+        if String.IsNullOrWhiteSpace password then
+            Some FieldRequired
+        else
+            None
+
+    let verifySignInData (fields : SignInData) =
+        verifyEmail fields.Email = None
+        && verifyPassword fields.Password = None
+
 module User =
 
     let verifyFirstname firstname =

@@ -23,3 +23,17 @@ type UserCreate =
       Email: string
       Password : string
       PasswordConfirmation : string }
+
+[<Pojo>]
+type SignInData =
+    { Email: string
+      Password : string }
+
+[<Pojo>]
+type SignInResponse =
+    { Token : string }
+
+[<Pojo>]
+type GenericJsonResponse =
+    { Code : string
+      Data : obj }
