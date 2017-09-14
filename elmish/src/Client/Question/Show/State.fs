@@ -1,4 +1,4 @@
-module Dashboard.State
+module Question.Show.State
 
 open Elmish
 open Types

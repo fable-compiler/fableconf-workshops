@@ -85,6 +85,8 @@ let root (model: Model) dispatch =
             Admin.Dispatcher.View.root model.AdminModel adminPage (AdminMsg >> dispatch)
         | Dashboard ->
             Dashboard.View.root model.Dashboard (DashboardMsg >> dispatch)
+        | Question _ ->
+            Question.Show.View.root model.QuestionModel (QuestionMsg >> dispatch)
         |> (fun pageView ->
             Container.container [ ]
                 [ navbar model.CurrentPage

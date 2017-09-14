@@ -47,8 +47,7 @@ app
         "/user/list"
         (fun req res ->
             let users =
-                Database.Lowdb
-                    .get(!^"Users")
+                Database.Users
                     .value()
 
             res.setHeader("Content-Type", !^"application/json")
@@ -90,7 +89,8 @@ app
               Firstname = data.Firstname
               Surname = data.Surname
               Email = data.Email
-              Password = data.Password }
+              Password = data.Password
+              Avatar = "" }
 
         Database.Users
             .push(user)
@@ -127,6 +127,38 @@ app
 
         Express.Sugar.Response.send (toJson result) res
     )
+|> Express.Sugar.get
+    "/question/list"
+    (fun req res ->
+        let questions =
+            Database.Questions
+                .value() |> unbox<QuestionDb []>
+
+        let questionsWithUser : Shared.Types.Question [] =
+            questions
+            |> Array.map(fun question ->
+                let author =
+                    Database.Users
+                        .find(createObj [ "Id" ==> question.AuthorId ])
+                        .value() |> unbox<Shared.Types.User>
+                printfn "%A" question.AuthorId
+                printfn "%A" author
+                { Id = question.Id
+                  Author =
+                    { Id = author.Id
+                      Firstname = author.Firstname
+                      Surname = author.Surname
+                      Email = author.Email
+                      Avatar = author.Avatar }
+                  Title = question.Title
+                  Description = question.Description
+                  CreatedAt = question.CreatedAt.ToString()
+                }
+            )
+
+        res.setHeader("Content-Type", !^"application/json")
+        Express.Sugar.Response.send (toJson questionsWithUser) res
+    )
 |> ignore
 
 // Start the server
@@ -158,12 +190,41 @@ Database.Lowdb
                  Firstname = "Maxime"
                  Surname = "Mangel"
                  Email = "mangel.maxime@fableconf.com"
-                 Password = "maxime" }
+                 Password = "maxime"
+                 Avatar = "maxime_mangel.png" }
                { Id = 2
                  Firstname = "Alfonso"
                  Surname = "Garciacaro"
                  Email = "garciacaro.alfonso@fableconf.com"
-                 Password = "alfonso" }
+                 Password = "alfonso"
+                 Avatar = "alfonso_garciacaro.png" }
+               { Id = 3
+                 Firstname = "Robin"
+                 Surname = "Munn"
+                 Email = "robin.munn@fableconf.com"
+                 Password = "robin"
+                 Avatar = "robin_munn.png" }
+            |]
+          Questions =
+            [| { Id = 1
+                 AuthorId = 3
+                 Title = "What is the average wing speed of an unladen swallow?"
+                 Description =
+                    """
+Hello, yesterday I saw a flight of swallows and was wondering what their average wing speed is.
+
+If you know the answer please share it.
+                    """
+                 CreatedAt = System.DateTime.UtcNow }
+               { Id = 2
+                 AuthorId = 1
+                 Title = "Why did you create Fable ?"
+                 Description =
+                    """
+Hello Alfonso,
+I wanted to know why did you create Fable. Did you always planned to use F# ? Or was you thinking to others languages ?
+                    """
+                 CreatedAt = System.DateTime.UtcNow }
             |]
         }
     ).write()

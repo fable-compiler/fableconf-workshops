@@ -46,6 +46,10 @@ let urlUpdate (result: Option<Page>) model =
             | Some session ->
                 match authPage with
                 | Dashboard ->
+                    let (subModel, subMsg) = Dashboard.State.init ()
+                    { model with Dashboard = subModel }, Cmd.map DashboardMsg subMsg
+                | Question id ->
+                    Logger.error "joijojo jiojoi jojoj o"
                     model, Cmd.none
                 | Admin adminPage ->
                     let (subModel, subMsg) = Admin.Dispatcher.State.init adminPage
@@ -63,9 +67,10 @@ let init result =
     urlUpdate result
         { CurrentPage = AuthPage (Admin AdminPage.Index)
           AdminModel = Admin.Dispatcher.Types.Model.Empty
-          Dashboard = Dashboard.State.init ()
+          Dashboard = Dashboard.Types.Model.Empty
           SignIn = SignIn.State.init ()
           Session = None }
+
 
 let update msg (model:Model) =
     match msg with

@@ -7,8 +7,18 @@ open Helpers
 open Shared.Types
 
 [<Pojo>]
+type QuestionDb =
+    { Id : int
+      AuthorId : int
+      Title : string
+      Description : string
+      CreatedAt : System.DateTime }
+
+
+[<Pojo>]
 type DatabaseData =
-    { Users: User [] }
+    { Users : User []
+      Questions : QuestionDb [] }
 
 let dbFile = resolve("../../ressources/db.json")
 let adapter = Lowdb.FileSyncAdapter(dbFile)
@@ -37,3 +47,8 @@ type Database =
         with get() : Lowdb.Lowdb =
             Database.Lowdb
                 .get(!^"Users")
+
+    static member Questions
+        with get() : Lowdb.Lowdb =
+            Database.Lowdb
+                .get(!^"Questions")

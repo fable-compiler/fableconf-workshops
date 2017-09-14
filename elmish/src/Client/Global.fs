@@ -4,6 +4,7 @@ module Global
 open Fable.Core
 open Fable.Import
 open Elmish
+open System
 
 type AdminUserPage =
     | Index
@@ -16,6 +17,7 @@ type AdminPage =
 
 type AuthenticatedPage =
     | Dashboard
+    | Question of int
     | Admin of AdminPage
 
 type SessionAction =
@@ -37,6 +39,7 @@ let toHash page =
     | AuthPage authPage ->
         match authPage with
         | Dashboard -> "#dashboard"
+        | Question id -> sprintf "#question/%i" id
         | Admin admin ->
             match admin with
             | Index -> "#admin"

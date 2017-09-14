@@ -1,4 +1,4 @@
-module Dashboard.Types
+module Question.Show.Types
 
 type Model =
     { Questions : Shared.Types.Question list }

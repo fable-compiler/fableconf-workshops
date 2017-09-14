@@ -1,4 +1,4 @@
-module Dashboard.View
+module Question.Show.View
 
 open Fable.Core
 open Fable.Core.JsInterop

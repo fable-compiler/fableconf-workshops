@@ -8,7 +8,8 @@ type User =
       Firstname: string
       Surname: string
       Email: string
-      Password: string }
+      Password: string
+      Avatar : string }
 
 [<Pojo>]
 type UserEdit =
@@ -37,3 +38,19 @@ type SignInResponse =
 type GenericJsonResponse =
     { Code : string
       Data : obj }
+
+[<Pojo>]
+type UserInfo =
+    { Id : int
+      Firstname : string
+      Surname : string
+      Email : string
+      Avatar : string }
+
+[<Pojo>]
+type Question =
+    { Id : int
+      Author : UserInfo
+      Title : string
+      Description : string
+      CreatedAt : string }
