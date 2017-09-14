@@ -17,13 +17,23 @@ type AdminPage =
 type AuthenticatedPage =
     | Admin of AdminPage
 
+type SessionAction =
+    | ReloadToken of string option
+
 type Page =
     | Home
     | SignIn
     | AuthPage of AuthenticatedPage
+    | Session of SessionAction
 
 let toHash page =
     match page with
+    | Session session ->
+        match session with
+        | ReloadToken nextUrl ->
+            match nextUrl with
+            | Some url -> "#session?nextUrl=" + url
+            | None -> "#session?nextUrl="
     | Home -> "#home"
     | AuthPage authPage ->
         match authPage with

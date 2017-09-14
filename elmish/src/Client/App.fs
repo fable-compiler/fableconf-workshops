@@ -58,6 +58,11 @@ let navbar currentPage =
 let root (model: Model) dispatch =
 
     match model.CurrentPage with
+    | Session _ ->
+        div [ ]
+            [ str "We should never go in this view because Session should never be stored into the CurrentPage value."
+              br [ ]
+              str "If needed in the future create an overlay loader" ]
     | SignIn ->
         Hero.hero [ Hero.isFullHeight ]
             [ Hero.head [ ]

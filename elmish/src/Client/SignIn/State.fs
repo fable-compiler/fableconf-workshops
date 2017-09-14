@@ -1,6 +1,7 @@
 module SignIn.State
 
 open Elmish
+open Elmish.Browser.Navigation
 open Types
 open Okular
 open Okular.Operators
@@ -35,18 +36,24 @@ let update msg model =
               Password = model.FormData.Password.Value }
 
         if Validation.verifySignInData signInData then
-            model, Cmd.ofPromise Rest.signIn signInData SignInSuccess NetworkError
+            { model with IsLoading = true }, Cmd.ofPromise Rest.signIn signInData SignInSuccess NetworkError
         else
             { model with FormData = updateErrors model.FormData }, Cmd.none
 
-    | NetworkError error -> failwith "Not Implemented"
+    | NetworkError error ->
+        Logger.errorFn "[Sign.State][Network error] %s" error.Message
+        { model with IsLoading = false }, Cmd.none
 
     | SignInSuccess result ->
         match result.Code with
         | Validation.UserNotFound ->
-            Logger.debug "not found"
-        | Validation.SignInSuccess ->
-            Logger.debug (result.Data :?> Shared.Types.SignInResponse).Token
-        | _ -> failwith "Unkown code"
+            { model with IsLoading = false }, Cmd.none
 
-        model, Cmd.none
+        | Validation.SignInSuccess ->
+            LocalStorage.Token <- (result.Data :?> Shared.Types.SignInResponse).Token
+            let url = SessionAction.ReloadToken >> Session
+            { model with IsLoading = false }, Navigation.newUrl (toHash (url None))
+
+        | code ->
+            Logger.errorFn "Unkown code: %O" code
+            { model with IsLoading = false }, Cmd.none

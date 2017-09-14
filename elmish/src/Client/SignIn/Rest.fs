@@ -10,5 +10,7 @@ let signIn (data : Shared.Types.SignInData) =
         let url = serverUrl "/sign-in"
         let! res = postRecord url data []
         let! txt = res.text()
+
+        do! Promise.sleep 500
         return ofJson<GenericJsonResponse> txt
     }

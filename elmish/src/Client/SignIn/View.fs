@@ -39,6 +39,8 @@ let root model dispatch =
                   Field.field_div [ Field.isGrouped
                                     Field.Types.CustomClass Fulma.BulmaClasses.Bulma.Properties.Float.IsPulledRight ]
                     [ Control.control_div [ ]
-                        [ Button.button [ Button.isPrimary
-                                          Button.onClick (fun _ -> dispatch Submit) ]
+                        [ Button.button [ yield Button.isPrimary
+                                          yield Button.onClick (fun _ -> dispatch Submit)
+                                          if model.IsLoading then
+                                            yield Button.isLoading ]
                             [ str "Sign in" ] ] ] ] ] ]

@@ -77,5 +77,4 @@ let update msg model =
             { model with FormData = updateErrors model.FormData }, Cmd.none
 
     | CreateUserResponse response ->
-        Logger.debug response
         model, Cmd.none
