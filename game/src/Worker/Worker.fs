@@ -107,7 +107,7 @@ let createAsteroids level (world: P2.World) =
         // TODO: Avoid the ship
         // Create asteroid body
         let asteroidBody = P2.Body(makeOpts(fun o ->
-            o.mass <- Some 10.
+            o.mass <- Some Init.asteroidMass
             o.position <- Some (x, y)
             o.velocity <- Some (vx, vy)
             o.angularVelocity <- Some va
@@ -144,7 +144,7 @@ let initModel(level: int): WorkerModel =
         o.collisionMask <- Some(Init.ASTEROID ||| Init.BOUND)
     ))
     let shipBody = P2.Body(makeOpts(fun o ->
-        o.mass <- Some 1.
+        o.mass <- Some Init.shipMass
         o.damping <- Some 0.
         o.angularDamping <- Some 0.
     ))
@@ -158,7 +158,7 @@ let initModel(level: int): WorkerModel =
         o.collisionMask <- Some(Init.ASTEROID ||| Init.BOUND)
     ))
     let maceBody = P2.Body(makeOpts(fun o ->
-        o.mass <- Some 5.
+        o.mass <- Some Init.maceMass
         o.position <- Some (0., -Init.maceDistance)
         o.damping <- Some 0.
         o.angularDamping <- Some 0.
