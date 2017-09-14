@@ -1,16 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Shared/Shared.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Logger.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Global.fs" />
-    <!-- Home -->
     <Compile Include="Home/Types.fs" />
     <Compile Include="Home/State.fs" />
     <Compile Include="Home/View.fs" />
-    <!-- Admin -->
     <Compile Include="Admin/Index/Types.fs" />
     <Compile Include="Admin/Index/State.fs" />
     <Compile Include="Admin/Index/View.fs" />
@@ -18,6 +19,10 @@
     <Compile Include="Admin/User/Index/Rest.fs" />
     <Compile Include="Admin/User/Index/State.fs" />
     <Compile Include="Admin/User/Index/View.fs" />
+    <Compile Include="Admin/User/Create/Types.fs" />
+    <Compile Include="Admin/User/Create/Rest.fs" />
+    <Compile Include="Admin/User/Create/State.fs" />
+    <Compile Include="Admin/User/Create/View.fs" />
     <Compile Include="Admin/User/Edit/Types.fs" />
     <Compile Include="Admin/User/Edit/Rest.fs" />
     <Compile Include="Admin/User/Edit/State.fs" />
@@ -25,13 +30,9 @@
     <Compile Include="Admin/Dispatcher/Types.fs" />
     <Compile Include="Admin/Dispatcher/State.fs" />
     <Compile Include="Admin/Dispatcher/View.fs" />
-    <!-- App -->
     <Compile Include="Types.fs" />
     <Compile Include="State.fs" />
     <Compile Include="App.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="../Shared/Shared.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

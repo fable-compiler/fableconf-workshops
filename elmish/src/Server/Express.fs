@@ -23,6 +23,14 @@ module Sugar =
         |> ignore
         app
 
+    let put (route: string) (handler: SimpleHandler) (app: express.Express) =
+        app.put(U2.Case1 route, (fun req res _ ->
+            handler req res
+            |> box
+        ))
+        |> ignore
+        app
+
     type UseBuilder =
         | UseBuilder of express.Express with
 

@@ -58,14 +58,46 @@ app
         (fun req res ->
             let id = unbox<int> req.``params``?id
             let user =
-                Database.Lowdb
-                    .get(!^"Users")
+                Database.Users
                     .find(createObj [ "Id" ==> id])
                     .value()
 
             res.setHeader("Content-Type", !^"application/json")
             Express.Sugar.Response.send (toJson user) res
         )
+|> Express.Sugar.put
+    "/user/:id/edit"
+    (fun req res ->
+        let id = unbox<int> req.``params``?id
+        let user = unbox<Shared.Types.UserEdit> req.body
+
+        Database.Users
+            .find(createObj [ "Id" ==> id])
+            .assign(user)
+            .write()
+
+        res.setHeader("Content-Type", !^"application/json")
+        Express.Sugar.Response.send (toJson "success") res
+    )
+|> Express.Sugar.post
+    "/user/create"
+    (fun req res ->
+        let data = unbox<Shared.Types.UserCreate> req.body
+
+        let user : Shared.Types.User =
+            { Id = Database.NextUserId
+              Firstname = data.Firstname
+              Surname = data.Surname
+              Email = data.Email
+              Password = data.Password }
+
+        Database.Users
+            .push(user)
+            .write()
+
+        res.setHeader("Content-Type", !^"application/json")
+        Express.Sugar.Response.send (toJson "success") res
+    )
 // |> Express.get
 //         ""
 |> ignore

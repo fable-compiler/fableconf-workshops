@@ -1,6 +1,7 @@
 module Database
 
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import
 open Helpers
 open Shared.Types
@@ -21,3 +22,18 @@ type Database =
                 do_not_use_directly_db <- Lowdb.Lowdb(adapter) |> Some
 
             do_not_use_directly_db.Value
+
+    static member NextUserId
+        with get() : int =
+            let user =
+                Database.Users
+                    .sortBy("Id")
+                    ?last()
+                    ?value()
+                |> unbox<User>
+            user.Id + 1
+
+    static member Users
+        with get() : Lowdb.Lowdb =
+            Database.Lowdb
+                .get(!^"Users")

@@ -18,3 +18,4 @@ type Msg =
     | FetchUsersSuccess of Shared.Types.User []
     | Error of exn
     | ShowDetail of int
+    | CreateUser

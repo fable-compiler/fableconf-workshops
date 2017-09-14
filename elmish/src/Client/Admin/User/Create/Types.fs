@@ -1,4 +1,4 @@
-module Admin.User.Edit.Types
+module Admin.User.Create.Types
 
 open Okular.Lens
 
@@ -25,12 +25,9 @@ type StringField =
 type FormData =
     { Firstname : StringField
       Surname : StringField
-      Email : StringField }
-
-    static member FromUser (user : Shared.Types.User) =
-        { Firstname = StringField.Initial user.Firstname
-          Surname = StringField.Initial user.Surname
-          Email = StringField.Initial user.Email }
+      Email : StringField
+      Password : StringField
+      PasswordConfirmation : StringField }
 
     static member FirstnameLens =
         { Get = fun (r : FormData) -> r.Firstname
@@ -44,23 +41,30 @@ type FormData =
         { Get = fun (r : FormData) -> r.Email
           Set = fun v (r : FormData) -> { r with Email = v } }
 
+    static member PasswordLens =
+        { Get = fun (r : FormData) -> r.Password
+          Set = fun v (r : FormData) -> { r with Password = v } }
+
+    static member PasswordConfirmationLens =
+        { Get = fun (r : FormData) -> r.PasswordConfirmation
+          Set = fun v (r : FormData) -> { r with PasswordConfirmation = v } }
+
 
 type Model =
     { IsLoading : bool
-      FormData : FormData
-      UserId : int }
+      FormData : FormData }
 
     static member FormDataLens =
         { Get = fun (r : Model) -> r.FormData
           Set = fun v (r : Model) -> { r with FormData = v } }
 
 type Msg =
-    | FetchUser
-    | FetchUserSuccess of Shared.Types.User
     | NetworkError of exn
     | ChangeFirstname of string
     | ChangeSurname of string
     | ChangeEmail of string
+    | ChangePassword of string
+    | ChangePasswordConfirmation of string
     | Cancel
     | Submit
-    | EditUserResponse of obj
+    | CreateUserResponse of obj

@@ -1,4 +1,4 @@
-module Admin.User.Edit.State
+module Admin.User.Create.State
 
 open Elmish
 open Elmish.Browser.Navigation
@@ -8,29 +8,27 @@ open Okular
 open Okular.Operators
 module Validation = Shared.Validation.User
 
-let init id =
+let init () =
     { IsLoading = true
       FormData =
         { Firstname = StringField.Empty
           Surname = StringField.Empty
-          Email = StringField.Empty }
-      UserId = id }, Cmd.ofMsg FetchUser
+          Email = StringField.Empty
+          Password = StringField.Empty
+          PasswordConfirmation = StringField.Empty } }, Cmd.none
 
 let updateErrors formData =
     formData
     |> Lens.set (FormData.EmailLens >-> StringField.ErrorLens) (Validation.verifyEmail formData.Email.Value)
     |> Lens.set (FormData.FirstnameLens >-> StringField.ErrorLens) (Validation.verifyFirstname formData.Firstname.Value)
     |> Lens.set (FormData.SurnameLens >-> StringField.ErrorLens) (Validation.verifySurname formData.Surname.Value)
+    |> Lens.set (FormData.PasswordLens >-> StringField.ErrorLens) (Validation.verifyPassword formData.Password.Value)
+    |> Lens.set (FormData.PasswordConfirmationLens >-> StringField.ErrorLens)
+        (Validation.verifyPasswordConfirmation formData.PasswordConfirmation.Value formData.Password.Value)
+
 
 let update msg model =
     match msg with
-    | FetchUser ->
-        model, Cmd.ofPromise Rest.getUser model.UserId FetchUserSuccess NetworkError
-
-    | FetchUserSuccess user ->
-        { model with FormData = FormData.FromUser user
-                     UserId = user.Id }, Cmd.none
-
     | NetworkError error ->
         printfn "[Admin.User.Edit][Network error] %s" error.Message
         model, Cmd.none
@@ -54,17 +52,30 @@ let update msg model =
         |> Lens.set (Model.FormDataLens >-> FormData.EmailLens >-> StringField.ValueLens) value
         |> Lens.set (Model.FormDataLens >-> FormData.EmailLens >-> StringField.ErrorLens) (Validation.verifyEmail value), Cmd.none
 
+    | ChangePassword value ->
+        model
+        |> Lens.set (Model.FormDataLens >-> FormData.PasswordLens >-> StringField.ValueLens) value
+        |> Lens.set (Model.FormDataLens >-> FormData.PasswordLens >-> StringField.ErrorLens) (Validation.verifyPassword value), Cmd.none
+
+    | ChangePasswordConfirmation value ->
+        let error = Validation.verifyPasswordConfirmation value model.FormData.Password.Value
+        model
+        |> Lens.set (Model.FormDataLens >-> FormData.PasswordConfirmationLens >-> StringField.ValueLens) value
+        |> Lens.set (Model.FormDataLens >-> FormData.PasswordConfirmationLens >-> StringField.ErrorLens) error, Cmd.none
+
     | Submit ->
-        let userData : Shared.Types.UserEdit =
+        let userData : Shared.Types.UserCreate =
             { Firstname = model.FormData.Firstname.Value
               Surname = model.FormData.Surname.Value
-              Email = model.FormData.Email.Value }
+              Email = model.FormData.Email.Value
+              Password = model.FormData.Password.Value
+              PasswordConfirmation = model.FormData.PasswordConfirmation.Value }
 
-        if Validation.verifyUserUpdate userData then
-            model, Cmd.ofPromise Rest.saveUser (model.UserId, userData) EditUserResponse NetworkError
+        if Validation.verifyUserCreate userData then
+            model, Cmd.ofPromise Rest.createUser userData CreateUserResponse NetworkError
         else
             { model with FormData = updateErrors model.FormData }, Cmd.none
 
-    | EditUserResponse response ->
+    | CreateUserResponse response ->
         Logger.debug response
         model, Cmd.none

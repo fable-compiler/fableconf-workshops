@@ -5,6 +5,7 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Types.fs" />
+        <Compile Include="Validation.fs" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

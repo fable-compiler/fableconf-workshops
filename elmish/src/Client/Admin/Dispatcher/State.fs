@@ -16,9 +16,8 @@ let init adminPage =
             { Model.Empty with UserIndex = Some subModel }, Cmd.map UserIndexMsg subCmd
 
         | AdminUserPage.Create ->
-            failwith "Not implemented yet"
-            // let (subModel, subCmd) = Admin.Index.State.init ()
-            // { Model.Empty with Index = Some subModel }, Cmd.map IndexMsg subCmd
+            let (subModel, subCmd) = Admin.User.Create.State.init ()
+            { Model.Empty with UserCreate = Some subModel }, Cmd.map UserCreateMsg subCmd
 
         | AdminUserPage.Edit id ->
             let (subModel, subCmd) = Admin.User.Edit.State.init id
@@ -37,3 +36,7 @@ let update msg model =
     | UserEditMsg msg ->
         let (userEdit, userEditMsg) = secureUpdate Admin.User.Edit.State.update msg model.UserEdit
         { model with UserEdit = Some userEdit }, Cmd.map UserEditMsg userEditMsg
+
+    | UserCreateMsg msg ->
+        let (userCreate, userCreateMsg) = secureUpdate Admin.User.Create.State.update msg model.UserCreate
+        { model with UserCreate = Some userCreate }, Cmd.map UserCreateMsg userCreateMsg

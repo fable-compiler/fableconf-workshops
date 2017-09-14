@@ -8,6 +8,8 @@ open Types
 open Fulma.Elements
 open Fulma.Extra.FontAwesome
 open Elmish.Browser.Navigation
+open Fulma.Layouts
+open Fulma.BulmaClasses
 
 let userRow dispatch (user : Shared.Types.User) =
     tr [ ]
@@ -18,13 +20,20 @@ let userRow dispatch (user : Shared.Types.User) =
                     [ Icon.faIcon [ Icon.isSmall ] Fa.Pencil ] ] ]
 
 let root model dispatch =
-    div [ ]
-        [ Table.table [ Table.isStripped ]
-            [ thead [ ]
-                [ tr [ ]
-                    [ th [ ] [ str "Firsntame" ]
-                      th [ ] [ str "Surname" ]
-                      th [ ] [ str "Email" ]
-                      th [ ] [ ] ] ]
-              tbody [ ]
-                (model.Users |> List.map (userRow dispatch) ) ] ]
+    Columns.columns [ Columns.isCentered ]
+        [ Column.column [ Column.Width.isHalf ]
+            [ div [ ClassName Bulma.Properties.Alignment.HasTextCentered ]
+                [ Button.button [ Button.isPrimary
+                                  Button.onClick (fun _ -> dispatch CreateUser) ]
+                    [ str "Create a user"] ]
+              br [ ]
+              Table.table [ Table.isStripped
+                            Table.customClass "is-fullwidth" ]
+                [ thead [ ]
+                    [ tr [ ]
+                        [ th [ ] [ str "Firsntame" ]
+                          th [ ] [ str "Surname" ]
+                          th [ ] [ str "Email" ]
+                          th [ ] [ ] ] ]
+                  tbody [ ]
+                    (model.Users |> List.map (userRow dispatch) ) ] ] ]

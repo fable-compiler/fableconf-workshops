@@ -16,7 +16,8 @@ let root model (currentPage: AdminPage)  dispatch =
         | AdminUserPage.Index ->
             secureView Admin.User.Index.View.root model.UserIndex (UserIndexMsg >> dispatch)
 
-        | AdminUserPage.Create -> str "User create"
+        | AdminUserPage.Create ->
+            secureView Admin.User.Create.View.root model.UserCreate (UserCreateMsg >> dispatch)
 
         | AdminUserPage.Edit id ->
             secureView Admin.User.Edit.View.root model.UserEdit (UserEditMsg >> dispatch)

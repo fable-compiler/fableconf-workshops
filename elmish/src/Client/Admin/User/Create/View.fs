@@ -1,4 +1,4 @@
-module Admin.User.Edit.View
+module Admin.User.Create.View
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -29,13 +29,15 @@ let root model dispatch =
                 [ textField "Firstname" Fa.User model.FormData.Firstname ChangeFirstname dispatch
                   textField "Surname" Fa.User model.FormData.Surname ChangeSurname dispatch
                   textField "Email" Fa.EnvelopeO model.FormData.Email ChangeEmail dispatch
+                  textField "Password" Fa.Key model.FormData.Password ChangePassword dispatch
+                  textField "Password Confirmation" Fa.Key model.FormData.PasswordConfirmation ChangePasswordConfirmation dispatch
 
                   Field.field_div [ Field.isGrouped
                                     Field.Types.CustomClass Fulma.BulmaClasses.Bulma.Properties.Float.IsPulledRight ]
                     [ Control.control_div [ ]
                         [ Button.button [ Button.isPrimary
                                           Button.onClick (fun _ -> dispatch Submit) ]
-                            [ str "Save changes" ] ]
+                            [ str "Create user" ] ]
                       Control.control_div [ ]
                         [ Button.button [ Button.isLink
                                           Button.onClick (fun _ -> dispatch Cancel) ]
