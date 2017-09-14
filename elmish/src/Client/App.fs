@@ -36,16 +36,18 @@ let navbarAdminLink currentPage =
         [ str "Admin" ]
 
 let navbar currentPage =
+    let dashboardUrl = Dashboard |> AuthPage
+
     Navbar.navbar [ Navbar.props [ Data("test", "maxime") ] ]
-        [ Navbar.brand_a [ Fulma.Common.GenericOption.Props [ Href (toHash Home)] ]
+        [ Navbar.brand_a [ Fulma.Common.GenericOption.Props [ Href (toHash dashboardUrl)] ]
             [ img [ Src "/img/logo.svg"
                     Style [ Height "60px" ] ] ]
           Navbar.item_a [
-              if currentPage = Home then
+              if currentPage = dashboardUrl then
                 yield Navbar.Item.isActive
-              yield Navbar.Item.props [ Href (toHash Home) ]
+              yield Navbar.Item.props [ Href (toHash dashboardUrl) ]
            ]
-            [ str "Home" ]
+            [ str "Dashboard" ]
           Navbar.menu [ ]
             [ Navbar.start_div [ ]
                 [ Navbar.item_div [ Navbar.Item.hasDropdown
@@ -79,14 +81,15 @@ let root (model: Model) dispatch =
 
     | AuthPage authPage ->
         match authPage with
-        | Admin adminPage -> Admin.Dispatcher.View.root model.AdminModel adminPage (AdminMsg >> dispatch)
+        | Admin adminPage ->
+            Admin.Dispatcher.View.root model.AdminModel adminPage (AdminMsg >> dispatch)
+        | Dashboard ->
+            Dashboard.View.root model.Dashboard (DashboardMsg >> dispatch)
         |> (fun pageView ->
             Container.container [ ]
                 [ navbar model.CurrentPage
                   pageView ]
         )
-
-    | Home -> Home.View.root model.Home (HomeMsg >> dispatch)
 
 
 open Elmish.React

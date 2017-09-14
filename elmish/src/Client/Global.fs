@@ -15,13 +15,13 @@ type AdminPage =
     | User of AdminUserPage
 
 type AuthenticatedPage =
+    | Dashboard
     | Admin of AdminPage
 
 type SessionAction =
     | ReloadToken of string option
 
 type Page =
-    | Home
     | SignIn
     | AuthPage of AuthenticatedPage
     | Session of SessionAction
@@ -34,9 +34,9 @@ let toHash page =
             match nextUrl with
             | Some url -> "#session?nextUrl=" + url
             | None -> "#session?nextUrl="
-    | Home -> "#home"
     | AuthPage authPage ->
         match authPage with
+        | Dashboard -> "#dashboard"
         | Admin admin ->
             match admin with
             | Index -> "#admin"

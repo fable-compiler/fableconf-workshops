@@ -1,4 +1,4 @@
-module Home.View
+module Dashboard.View
 
 open Fable.Core
 open Fable.Core.JsInterop
@@ -15,10 +15,9 @@ let root model dispatch =
                 [ ClassName "input"
                   Type "text"
                   Placeholder "Type your name"
-                  DefaultValue model
                   AutoFocus true
                   OnChange (fun ev -> !!ev.target?value |> ChangeStr |> dispatch ) ] ]
           br [ ]
           span
             [ ]
-            [ str (sprintf "Hello %s" model) ] ]
+            [  ] ]

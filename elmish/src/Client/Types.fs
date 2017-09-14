@@ -4,13 +4,13 @@ open Okular.Lens
 
 type Msg =
     | AdminMsg of Admin.Dispatcher.Types.Msg
-    | HomeMsg of Home.Types.Msg
+    | DashboardMsg of Dashboard.Types.Msg
     | SignInMsg of SignIn.Types.Msg
 
 type Model =
     { CurrentPage : Page
       AdminModel : Admin.Dispatcher.Types.Model
-      Home : Home.Types.Model
+      Dashboard : Dashboard.Types.Model
       SignIn : SignIn.Types.Model
       Session : Session option }
 

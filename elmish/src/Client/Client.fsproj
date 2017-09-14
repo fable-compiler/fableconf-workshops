@@ -13,9 +13,9 @@
     <Compile Include="SignIn/Rest.fs" />
     <Compile Include="SignIn/State.fs" />
     <Compile Include="SignIn/View.fs" />
-    <Compile Include="Home/Types.fs" />
-    <Compile Include="Home/State.fs" />
-    <Compile Include="Home/View.fs" />
+    <Compile Include="Dashboard/Types.fs" />
+    <Compile Include="Dashboard/State.fs" />
+    <Compile Include="Dashboard/View.fs" />
     <Compile Include="Admin/Index/Types.fs" />
     <Compile Include="Admin/Index/State.fs" />
     <Compile Include="Admin/Index/View.fs" />
