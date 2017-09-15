@@ -278,20 +278,6 @@ I wanted to know why did you create Fable. Did you always planned to use F# ? Or
           Answers =
             [| { Id = 1
                  QuestionId = 1
-                 AuthorId = 2
-                 Content =
-                    """
-Maxime,
-
-I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
-
-And so Robin, the conclusion of the post is:
-
-> In the end, it’s concluded that the airspeed velocity of a (European) unladen swallow is about 24 miles per hour or 11 meters per second.
-                    """
-                 CreatedAt = "2017-09-15T22:31:16.103Z" }
-               { Id = 2
-                 QuestionId = 1
                  AuthorId = 1
                  Content =
                     """
@@ -304,6 +290,20 @@ Ok I must admit, I use google to search the question and found a post explaining
 I thought you was asking it seriously well done.
                     """
                  CreatedAt = "2017-09-14T19:57:33.103Z" }
+               { Id = 2
+                 QuestionId = 1
+                 AuthorId = 2
+                 Content =
+                    """
+Maxime,
+
+I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
+
+And so Robin, the conclusion of the post is:
+
+> In the end, it’s concluded that the airspeed velocity of a (European) unladen swallow is about 24 miles per hour or 11 meters per second.
+                    """
+                 CreatedAt = "2017-09-15T22:31:16.103Z" }
             |]
         }
     ).write()
