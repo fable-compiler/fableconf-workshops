@@ -11,6 +11,8 @@ open App.State
 open Fulma.Layouts
 open Fulma.Components
 open Fulma.Elements
+open Fulma.Elements.Form
+open Fulma.Extra.FontAwesome
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Fulma.BulmaClasses
@@ -35,25 +37,33 @@ let navbarAdminLink currentPage =
                     yield Navbar.Link.props [ Href (toHash url) ] ]
         [ str "Admin" ]
 
-let navbar currentPage =
+let navbar (user: Shared.Types.UserInfo) currentPage =
     let dashboardUrl = Dashboard |> AuthPage
-
+    let logoutUrl = Logout |> Session
     Navbar.navbar [ Navbar.props [ Data("test", "maxime") ] ]
         [ Navbar.brand_a [ Fulma.Common.GenericOption.Props [ Href (toHash dashboardUrl)] ]
-            [ img [ Src "/img/logo.svg"
-                    Style [ Height "60px" ] ] ]
-          Navbar.item_a [
-              if currentPage = dashboardUrl then
-                yield Navbar.Item.isActive
-              yield Navbar.Item.props [ Href (toHash dashboardUrl) ] ]
-            [ str "Questions" ]
+            [ Image.image [ Image.is64x64 ]
+                [ img [ Src "/img/logo.svg" ] ] ]
           Navbar.menu [ ]
-            [ Navbar.start_div [ ]
-                [ Navbar.item_div [ Navbar.Item.hasDropdown
-                                    Navbar.Item.isHoverable ]
-                    [ navbarAdminLink currentPage
-                      Navbar.dropdown_div [ ]
-                        [ genNavbarItem "Users" (AdminUserPage.Index |> AdminPage.User |> Admin |> AuthPage) currentPage ] ] ] ] ]
+            [ yield Navbar.item_a [
+                      if currentPage = dashboardUrl then
+                        yield Navbar.Item.isActive
+                      yield Navbar.Item.props [ Href (toHash dashboardUrl) ] ]
+                    [ str "Questions" ]
+              if user.Permissions.Contains("admin") then
+                yield Navbar.start_div [ ]
+                        [ Navbar.item_div [ Navbar.Item.hasDropdown
+                                            Navbar.Item.isHoverable ]
+                            [ navbarAdminLink currentPage
+                              Navbar.dropdown_div [ ]
+                                [ genNavbarItem "Users" (AdminUserPage.Index |> AdminPage.User |> Admin |> AuthPage) currentPage ] ] ]
+              yield Navbar.end_div [ ]
+                    [ Navbar.item_div [ ]
+                        [ Help.help [ ]
+                            [ str ( user.Firstname + " " + user.Surname )]
+                        ]
+                      Navbar.item_a [ Navbar.Item.props [ Href (toHash logoutUrl) ] ]
+                        [ Icon.faIcon [ Icon.isMedium ] Fa.SignOut ] ] ] ]
 
 
 let root (model: Model) dispatch =
@@ -88,7 +98,7 @@ let root (model: Model) dispatch =
             Question.Show.View.root model.QuestionModel (QuestionMsg >> dispatch)
         |> (fun pageView ->
             Container.container [ ]
-                [ navbar model.CurrentPage
+                [ navbar model.Session.Value.User model.CurrentPage
                   pageView ]
         )
 

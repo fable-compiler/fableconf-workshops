@@ -50,7 +50,7 @@ let update msg model =
             { model with IsLoading = false }, Cmd.none
 
         | Validation.SignInSuccess ->
-            LocalStorage.Token <- (result.Data :?> Shared.Types.SignInResponse).Token
+            LocalStorage.Session <- (result.Data :?> Shared.Types.SignInResponse)
             let url = SessionAction.ReloadToken >> Session
             { model with IsLoading = false }, Navigation.newUrl (toHash (url None))
 

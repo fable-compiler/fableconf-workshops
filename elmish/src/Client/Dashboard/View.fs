@@ -45,8 +45,7 @@ open System
 //           replyMedia ]
 
 let questionView (question : Shared.Types.Question) =
-    Logger.log question.CreatedAt
-    let createdAt = DateTime.Parse(question.CreatedAt)
+    let createdAt = DateTime.Parse(question.CreatedAt).ToLocalTime()
     let url = AuthenticatedPage.Question >> AuthPage >> toHash
 
     Media.media [ ]

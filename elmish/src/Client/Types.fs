@@ -14,7 +14,7 @@ type Model =
       Dashboard : Dashboard.Types.Model
       QuestionModel : Question.Show.Types.Model
       SignIn : SignIn.Types.Model
-      Session : Session option }
+      Session : Shared.Types.SessionInfo option }
 
     static member AdminModelLens =
         { Get = fun (r : Model) -> r.AdminModel

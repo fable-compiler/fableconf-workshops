@@ -23,12 +23,11 @@ let replyMedia (fieldValue: StringField) isWaiting dispatch =
     Media.media [ ]
         [ Media.left [ ]
             [ Image.image [ Image.is64x64 ]
-                [ img [ Src "/img/logo.svg" ] ] ]
+                [ img [ Src ("/img/avatars/" + LocalStorage.Session.User.Avatar) ] ] ]
           Media.content [ ]
             [ Field.field_div [ ]
                 [ yield Control.control_div [ if isWaiting then yield Control.isLoading ]
-                    [ Textarea.textarea [ yield Textarea.defaultValue fieldValue.Value
-                                          yield Textarea.props [ OnChange (fun ev -> !!ev.target?value |> ChangeReply |> dispatch)
+                    [ Textarea.textarea [ yield Textarea.props [ OnChange (fun ev -> !!ev.target?value |> ChangeReply |> dispatch)
                                                                  OnKeyDown (fun ev ->
                                                                     if ev.ctrlKey && ev.key = "Enter" then
                                                                         dispatch Submit
@@ -59,7 +58,7 @@ let replyMedia (fieldValue: StringField) isWaiting dispatch =
                         [ str "Press Ctrl + Enter to submit" ] ] ] ] ]
 
 let answerView (answer : Shared.Types.Answer) =
-    let createdAt = DateTime.Parse(answer.CreatedAt)
+    let createdAt = DateTime.Parse(answer.CreatedAt).ToLocalTime()
 
     Media.media [ ]
         [ Media.left [ ]
@@ -77,11 +76,11 @@ let answerView (answer : Shared.Types.Answer) =
                             [ str (sprintf "Answer by %s %s, %s"
                                         answer.Author.Firstname
                                         answer.Author.Surname
-                                        (createdAt.ToString("yyyy-MM-dd hh:mm:ss"))) ] ] ] ] ] ]
+                                        (createdAt.ToString("yyyy-MM-dd HH:mm:ss"))) ] ] ] ] ] ]
 
 
 let questionView (question : Shared.Types.Question) answers =
-    let createdAt = DateTime.Parse(question.CreatedAt)
+    let createdAt = DateTime.Parse(question.CreatedAt).ToLocalTime()
     let url = AuthenticatedPage.Question >> AuthPage >> toHash
 
     Media.media [ ]

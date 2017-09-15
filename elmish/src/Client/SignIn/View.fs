@@ -11,31 +11,38 @@ open Fulma.Extra.FontAwesome
 open Fulma.Layouts
 open Fulma.BulmaClasses
 
-let inputField (inputView: Input.Types.Option list -> Fable.Import.React.ReactElement) label icon (field: StringField) (msg: string -> Msg) dispatch =
+let emailField field dispatch  =
     Field.field_div [ ]
       [ yield Label.label [ ]
-                [ str label ]
+                [ str "Email" ]
         yield Control.control_div [ Control.hasIconLeft ]
-                [ Icon.faIcon [ Icon.isSmall ] icon
-                  inputView [ Input.defaultValue field.Value
-                              Input.props [ OnChange (fun ev -> msg !!ev.target?value |> dispatch) ] ] ]
+                [ Icon.faIcon [ Icon.isSmall ] Fa.EnvelopeO
+                  Input.email [ Input.props [ OnChange (fun ev -> ChangeEmail !!ev.target?value |> dispatch) ] ] ]
         if field.Error.IsSome then
             yield Help.help [ Help.isDanger ]
                     [ str field.Error.Value ] ]
 
-let textField =
-    inputField Input.text
-
-let passwordField =
-    inputField Input.password
+let passwordField field dispatch =
+    Field.field_div [ ]
+      [ yield Label.label [ ]
+                [ str "Password" ]
+        yield Control.control_div [ Control.hasIconLeft ]
+                [ Icon.faIcon [ Icon.isSmall ] Fa.Key
+                  Input.password [ Input.props [ OnChange (fun ev -> ChangePassword !!ev.target?value |> dispatch)
+                                                 OnKeyDown (fun ev ->
+                                                    if ev.key = "Enter" then
+                                                        dispatch Submit )
+                                               ] ] ]
+        if field.Error.IsSome then
+            yield Help.help [ Help.isDanger ]
+                    [ str field.Error.Value ] ]
 
 let root model dispatch =
     Columns.columns [ Columns.isCentered ]
         [ Column.column [ Column.Width.isHalf ]
             [ form [ ]
-                [ textField "Email" Fa.EnvelopeO model.FormData.Email ChangeEmail dispatch
-                  passwordField "Password" Fa.Key model.FormData.Password ChangePassword dispatch
-
+                [ emailField model.FormData.Email dispatch
+                  passwordField model.FormData.Password dispatch
                   Field.field_div [ Field.isGrouped
                                     Field.Types.CustomClass Fulma.BulmaClasses.Bulma.Properties.Float.IsPulledRight ]
                     [ Control.control_div [ ]

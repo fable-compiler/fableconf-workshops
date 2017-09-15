@@ -9,7 +9,8 @@ type User =
       Surname: string
       Email: string
       Password: string
-      Avatar : string }
+      Avatar : string
+      Permissions : string }
 
 [<Pojo>]
 type UserEdit =
@@ -26,26 +27,30 @@ type UserCreate =
       PasswordConfirmation : string }
 
 [<Pojo>]
+type UserInfo =
+    { Id : int
+      Firstname : string
+      Surname : string
+      Email : string
+      Avatar : string
+      Permissions : string }
+
+[<Pojo>]
 type SignInData =
     { Email: string
       Password : string }
 
 [<Pojo>]
 type SignInResponse =
-    { Token : string }
+    { Token : string
+      User : UserInfo }
+
+type SessionInfo = SignInResponse
 
 [<Pojo>]
 type GenericJsonResponse =
     { Code : string
       Data : obj }
-
-[<Pojo>]
-type UserInfo =
-    { Id : int
-      Firstname : string
-      Surname : string
-      Email : string
-      Avatar : string }
 
 [<Pojo>]
 type Question =

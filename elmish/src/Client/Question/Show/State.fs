@@ -32,7 +32,7 @@ let update msg model =
             model, Cmd.none
         else
             let createAnswerData : Shared.Types.CreateAnswer =
-                { AuthorId = 1
+                { AuthorId = LocalStorage.Session.User.Id
                   Content = model.Reply.Value }
 
             if Validation.Show.verifyCreateAnswer createAnswerData then

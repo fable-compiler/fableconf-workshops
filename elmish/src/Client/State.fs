@@ -12,9 +12,11 @@ let pageParser: Parser<Page->Page,Page> =
     oneOf [
       map SignIn (s "sign-in")
       map (ReloadToken >> Session) (s "session" <?> stringParam "nextUrl")
+      map (Logout |> Session) (s "logout")
       map (AuthPage Dashboard) (s "dashboard")
       map (AuthenticatedPage.Question >> AuthPage) (s "question" </> i32)
-      map (AuthPage (Admin Index)) (s "admin")
+      //map (AuthPage (Admin Index)) (s "admin")
+      map (AuthPage (Admin (User AdminUserPage.Index))) (s "admin")
       map (AuthPage (Admin (User AdminUserPage.Index))) (s "admin" </> s "user")
       map (AuthPage (Admin (User AdminUserPage.Create))) (s "admin" </> s "user" </> s "create")
       map (AdminUserPage.Edit >> AdminPage.User >> Admin >> AuthPage) (s "admin" </> s "user" </> i32 </> s "edit")
@@ -34,11 +36,13 @@ let urlUpdate (result: Option<Page>) model =
                 let url =
                     match nextUrl with
                     | None | Some "" ->
-                        let url = AdminPage.Index |> Admin |> AuthPage
+                        let url = Dashboard |> AuthPage
                         toHash url
                     | Some url -> url
-                { model with Session =
-                                Some { Token = LocalStorage.Token } }, Navigation.newUrl url
+                { model with Session = Some LocalStorage.Session }, Navigation.newUrl url
+            | SessionAction.Logout ->
+                LocalStorage.DestroySession()
+                { model with Session = None }, Navigation.newUrl (toHash SignIn)
         | SignIn -> { model with CurrentPage = page }, Cmd.none
         | AuthPage authPage ->
             let model = { model with CurrentPage = page }
@@ -56,12 +60,11 @@ let urlUpdate (result: Option<Page>) model =
                     let (subModel, subCmd) = Admin.Dispatcher.State.init adminPage
                     { model with AdminModel = subModel }, Cmd.map AdminMsg subCmd
             | None ->
-                match LocalStorage.Token with
+                match box LocalStorage.Session with
                 | null ->
                     model, Navigation.newUrl (toHash SignIn)
-                | token ->
-                    { model with Session =
-                                    Some { Token = token } }, Navigation.newUrl (toHash page)
+                | _ ->
+                    { model with Session = Some LocalStorage.Session }, Navigation.newUrl (toHash page)
 
 
 let init result =

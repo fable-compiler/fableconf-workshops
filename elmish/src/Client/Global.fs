@@ -2,6 +2,7 @@
 module Global
 
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import
 open Elmish
 open System
@@ -22,6 +23,7 @@ type AuthenticatedPage =
 
 type SessionAction =
     | ReloadToken of string option
+    | Logout
 
 type Page =
     | SignIn
@@ -36,6 +38,7 @@ let toHash page =
             match nextUrl with
             | Some url -> "#session?nextUrl=" + url
             | None -> "#session?nextUrl="
+        | Logout -> "#logout"
     | AuthPage authPage ->
         match authPage with
         | Dashboard -> "#dashboard"
@@ -64,21 +67,18 @@ let secureView (view: 'a -> ('b -> unit) -> Fable.Import.React.ReactElement) (op
     else
         failwith "Optional model has no value"
 
-type Session =
-    { Token : string }
-
 // type References =
 //     static member Map
 //         with get() = unbox<L.Map> Browser.window?map
 //         and set(value : L.Map) = Browser.window?map <- value
 
 type LocalStorage =
-    static member Token
-        with get() = Browser.localStorage.getItem("session_token") :?> string
-        and set(value) = Browser.localStorage.setItem("session_token", value)
+    static member Session
+        with get() = Browser.localStorage.getItem("session_info") :?> string |> ofJson<Shared.Types.SessionInfo>
+        and set(value : Shared.Types.SessionInfo) = Browser.localStorage.setItem("session_info", toJson value)
 
-    static member DestroyToken () =
-        Browser.localStorage.removeItem("session_token")
+    static member DestroySession () =
+        Browser.localStorage.removeItem("session_info")
 
 open Okular.Lens
 

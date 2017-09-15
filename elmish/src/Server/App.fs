@@ -92,7 +92,8 @@ app
               Surname = data.Surname
               Email = data.Email
               Password = data.Password
-              Avatar = "" }
+              Avatar = ""
+              Permissions = "" }
 
         Database.Users
             .push(user)
@@ -123,7 +124,8 @@ app
                   Data = null }
             else
                 let data : Shared.Types.SignInResponse =
-                    { Token = "I am a dummy token for now" }
+                    { Token = "I am a dummy token for now"
+                      User = Transform.generateUser (unbox user) }
                 { Code = Validation.SignIn.SignInSuccess
                   Data = data :> obj }
 
@@ -235,19 +237,22 @@ Database.Lowdb
                  Surname = "Mangel"
                  Email = "mangel.maxime@fableconf.com"
                  Password = "maxime"
-                 Avatar = "maxime_mangel.png" }
+                 Avatar = "maxime_mangel.png"
+                 Permissions = "admin" }
                { Id = 2
                  Firstname = "Alfonso"
                  Surname = "Garciacaro"
                  Email = "garciacaro.alfonso@fableconf.com"
                  Password = "alfonso"
-                 Avatar = "alfonso_garciacaro.png" }
+                 Avatar = "alfonso_garciacaro.png"
+                 Permissions = "" }
                { Id = 3
                  Firstname = "Robin"
                  Surname = "Munn"
                  Email = "robin.munn@fableconf.com"
                  Password = "robin"
-                 Avatar = "robin_munn.png" }
+                 Avatar = "robin_munn.png"
+                 Permissions = "" }
             |]
           Questions =
             [| { Id = 1
