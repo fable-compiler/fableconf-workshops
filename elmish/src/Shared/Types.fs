@@ -63,6 +63,11 @@ type Answer =
       CreatedAt : string }
 
 [<Pojo>]
+type AnswerCreate =
+    { AuthorId : int
+      Content : string }
+
+[<Pojo>]
 type QuestionShow =
     { Question : Question
       Answsers : Answer list }

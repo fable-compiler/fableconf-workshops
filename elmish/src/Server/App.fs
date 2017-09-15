@@ -155,13 +155,37 @@ app
         let question : Shared.Types.QuestionShow =
             { Question = Transform.generateQuestion questionDb
               Answsers =
-                questionDb.Answsers
+                Database.Answers
+                    .filter(createObj [ "QuestionId" ==> questionDb.Id ])
+                    .value()
+                |> unbox<AnswerDb []>
                 |> Array.map Transform.generateAnswer
                 |> Array.toList
             }
 
         res.setHeader("Content-Type", !^"application/json")
         Express.Sugar.Response.send (toJson question) res
+    )
+|> Express.Sugar.post
+    "/question/:id/answer"
+    (fun req res ->
+        let questionId = unbox<int> req.``params``?id
+
+        let data = unbox<Shared.Types.AnswerCreate> req.body
+
+        let answer : AnswerDb =
+            { Id = Database.NextAnswerId
+              QuestionId = questionId
+              AuthorId = data.AuthorId
+              Content = data.Content
+              CreatedAt = System.DateTime.UtcNow.ToString().Replace("\"", "")  }
+
+        Database.Answers
+            .push(answer)
+            .write()
+
+        res.setHeader("Content-Type", !^"application/json")
+        Express.Sugar.Response.send ("success") res
     )
 |> ignore
 
@@ -219,18 +243,7 @@ Hello, yesterday I saw a flight of swallows and was wondering what their **avera
 
 If you know the answer please share it.
                     """
-                 CreatedAt = "2017-09-14T17:44:28.103Z"
-                 Answsers =
-                    [| { Id = 1
-                         AuthorId = 1
-                         Content = "Aliquam rhoncus nec mi eget dictum. Praesent ut ornare est. Vivamus porttitor orci sit amet turpis laoreet fringilla. Sed viverra massa a nulla fringilla placerat. Integer luctus iaculis convallis. Donec rhoncus consectetur risus, a egestas leo finibus quis. Etiam ultrices elit felis, ac imperdiet ipsum euismod rutrum. Aliquam et dolor sapien. Sed eget laoreet ex."
-                         CreatedAt = "2017-09-14T19:57:33.103Z" }
-                       { Id = 1
-                         AuthorId = 2
-                         Content = "Proin convallis scelerisque enim, mattis malesuada diam suscipit quis. Nulla consectetur purus sit amet nisl tempor, ac efficitur augue rhoncus. "
-                         CreatedAt = "2017-09-15T22:31:16.103Z" }
-                    |]
-               }
+                 CreatedAt = "2017-09-14T17:44:28.103Z" }
                { Id = 2
                  AuthorId = 1
                  Title = "Why did you create Fable ?"
@@ -239,8 +252,37 @@ If you know the answer please share it.
 Hello Alfonso,
 I wanted to know why did you create Fable. Did you always planned to use F# ? Or was you thinking to others languages ?
                     """
-                 CreatedAt = "2017-09-12T09:27:28.103Z"
-                 Answsers = [||] }
+                 CreatedAt = "2017-09-12T09:27:28.103Z" }
+            |]
+          Answers =
+            [| { Id = 1
+                 QuestionId = 1
+                 AuthorId = 2
+                 Content =
+                    """
+Maxime,
+
+I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
+
+And so Robin, the conclusion of the post is:
+
+> In the end, it’s concluded that the airspeed velocity of a (European) unladen swallow is about 24 miles per hour or 11 meters per second.
+                    """
+                 CreatedAt = "2017-09-15T22:31:16.103Z" }
+               { Id = 2
+                 QuestionId = 1
+                 AuthorId = 1
+                 Content =
+                    """
+> What do you mean, an African or European Swallow ?
+>
+> Monty Python’s: The Holy Grail
+
+Ok I must admit, I use google to search the question and found a post explaining the reference :).
+
+I thought you was asking it seriously well done.
+                    """
+                 CreatedAt = "2017-09-14T19:57:33.103Z" }
             |]
         }
     ).write()

@@ -9,6 +9,7 @@ open Shared.Types
 [<Pojo>]
 type AnswerDb =
     { Id : int
+      QuestionId : int
       AuthorId : int
       Content : string
       CreatedAt : string }
@@ -19,13 +20,13 @@ type QuestionDb =
       AuthorId : int
       Title : string
       Description : string
-      CreatedAt : string
-      Answsers : AnswerDb [] }
+      CreatedAt : string }
 
 [<Pojo>]
 type DatabaseData =
     { Users : User []
-      Questions : QuestionDb [] }
+      Questions : QuestionDb []
+      Answers : AnswerDb [] }
 
 let dbFile = resolve("../../ressources/db.json")
 let adapter = Lowdb.FileSyncAdapter(dbFile)
@@ -59,3 +60,28 @@ type Database =
         with get() : Lowdb.Lowdb =
             Database.Lowdb
                 .get(!^"Questions")
+
+    static member Answers
+        with get() : Lowdb.Lowdb =
+            Database.Lowdb
+                .get(!^"Answers")
+
+    static member NextQuestionId
+        with get() : int =
+            let question =
+                Database.Questions
+                    .sortBy("Id")
+                    ?last()
+                    ?value()
+                |> unbox<QuestionDb>
+            question.Id + 1
+
+    static member NextAnswerId
+        with get() : int =
+            let answer =
+                Database.Answers
+                    .sortBy("Id")
+                    ?last()
+                    ?value()
+                |> unbox<AnswerDb>
+            answer.Id + 1
