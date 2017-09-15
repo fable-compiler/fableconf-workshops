@@ -16,7 +16,7 @@ let textField label icon (field: StringField) (msg: string -> Msg) dispatch =
                 [ str label ]
         yield Control.control_div [ Control.hasIconLeft ]
                 [ Icon.faIcon [ Icon.isSmall ] icon
-                  Input.text [ Input.value field.Value
+                  Input.text [ Input.defaultValue field.Value
                                Input.props [ OnChange (fun ev -> msg !!ev.target?value |> dispatch) ] ] ]
         if field.Error.IsSome then
             yield Help.help [ Help.isDanger ]

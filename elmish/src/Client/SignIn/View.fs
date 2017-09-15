@@ -17,7 +17,7 @@ let inputField (inputView: Input.Types.Option list -> Fable.Import.React.ReactEl
                 [ str label ]
         yield Control.control_div [ Control.hasIconLeft ]
                 [ Icon.faIcon [ Icon.isSmall ] icon
-                  inputView [ Input.value field.Value
+                  inputView [ Input.defaultValue field.Value
                               Input.props [ OnChange (fun ev -> msg !!ev.target?value |> dispatch) ] ] ]
         if field.Error.IsSome then
             yield Help.help [ Help.isDanger ]

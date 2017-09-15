@@ -26,6 +26,23 @@ module SignIn =
         verifyEmail fields.Email = None
         && verifyPassword fields.Password = None
 
+module Question =
+
+    let [<Literal>] QuestionNotFound = "question_not_found"
+
+    module Show =
+
+        let [<Literal>] CreateAnswerSuccess = "create_answer_success"
+
+        let verifyAnswer answer =
+            if String.IsNullOrWhiteSpace answer then
+                Some "Your answer can't be empty"
+            else
+                None
+
+        let verifyCreateAnswer (data : CreateAnswer) =
+            verifyAnswer data.Content = None
+
 module User =
 
     let verifyFirstname firstname =

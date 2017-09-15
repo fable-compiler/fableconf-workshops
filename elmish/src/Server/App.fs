@@ -171,21 +171,37 @@ app
     (fun req res ->
         let questionId = unbox<int> req.``params``?id
 
-        let data = unbox<Shared.Types.AnswerCreate> req.body
+        let data = unbox<Shared.Types.CreateAnswer> req.body
 
-        let answer : AnswerDb =
-            { Id = Database.NextAnswerId
-              QuestionId = questionId
-              AuthorId = data.AuthorId
-              Content = data.Content
-              CreatedAt = System.DateTime.UtcNow.ToString().Replace("\"", "")  }
+        let question =
+            Database.Questions
+                .find(createObj [ "Id" ==> questionId])
+                .value()
 
-        Database.Answers
-            .push(answer)
-            .write()
+        let result : Shared.Types.GenericJsonResponse =
+            if isNull question then
+                { Code = Validation.Question.QuestionNotFound
+                  Data = null }
+            else
+
+                let answer : AnswerDb =
+                    { Id = Database.NextAnswerId
+                      QuestionId = questionId
+                      AuthorId = data.AuthorId
+                      Content = data.Content
+                      CreatedAt = System.DateTime.UtcNow.ToString().Replace("\"", "")  }
+
+                Database.Answers
+                    .push(answer)
+                    .write()
+
+                let data : Shared.Types.Answer = Transform.generateAnswer answer
+
+                { Code = Validation.Question.Show.CreateAnswerSuccess
+                  Data = data :> obj }
 
         res.setHeader("Content-Type", !^"application/json")
-        Express.Sugar.Response.send ("success") res
+        Express.Sugar.Response.send (toJson result) res
     )
 |> ignore
 
@@ -195,20 +211,20 @@ let port =
     | Some x -> x
     | None -> 8080
 
-// Live reload when in dev mode
-// #if DEBUG
-// let reload = importDefault<obj> "reload"
-// let reloadServer = reload$(app)
+//Live reload when in dev mode
+#if DEBUG
+let reload = importDefault<obj> "reload"
+let reloadServer = reload$(app)
 
-// let watch = importDefault<obj> "watch"
+let watch = importDefault<obj> "watch"
 
-// let watchOptions = createEmpty<Watch.Options>
-// watchOptions.interval <- Some 1.
+let watchOptions = createEmpty<Watch.Options>
+watchOptions.interval <- Some 1.
 
-// Watch.Exports.watchTree(output, watchOptions, fun f cur prev ->
-//     reloadServer?reload$() |> ignore
-// )
-// #endif
+Watch.Exports.watchTree(output, watchOptions, fun f cur prev ->
+    reloadServer?reload$() |> ignore
+)
+#endif
 
 // let db =
 Database.Lowdb

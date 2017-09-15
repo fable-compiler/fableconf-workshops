@@ -19,24 +19,44 @@ type DangerousInnerHtml =
 
 let htmlFromMarkdown str = div [ DangerouslySetInnerHTML { __html = Marked.Globals.marked.parse (str) } ] []
 
-let replyMedia =
+let replyMedia (fieldValue: StringField) isWaiting dispatch =
     Media.media [ ]
         [ Media.left [ ]
             [ Image.image [ Image.is64x64 ]
                 [ img [ Src "/img/logo.svg" ] ] ]
           Media.content [ ]
             [ Field.field_div [ ]
-                [ Control.control_div [ ]
-                    [ Textarea.textarea [ ]
-                        [ ] ] ]
+                [ yield Control.control_div [ if isWaiting then yield Control.isLoading ]
+                    [ Textarea.textarea [ yield Textarea.defaultValue fieldValue.Value
+                                          yield Textarea.props [ OnChange (fun ev -> !!ev.target?value |> ChangeReply |> dispatch)
+                                                                 OnKeyDown (fun ev ->
+                                                                    if ev.ctrlKey && ev.key = "Enter" then
+                                                                        dispatch Submit
+                                                                 )
+                                                                 // We use Ref to empty the text area value
+                                                                 // Thanks React and it's "Uncontrolled" element
+                                                                 Ref (fun x ->
+                                                                    if not (isNull x) then
+                                                                        if fieldValue.Value = "" then
+                                                                            let textarea = x :?> Browser.HTMLTextAreaElement
+                                                                            textarea.value <- ""
+                                                                  )
+                                                               ]
+                                          if isWaiting then yield Textarea.isDisabled ]
+                        [ ] ]
+                  if fieldValue.Error.IsSome then
+                    yield Help.help [ Help.isDanger ]
+                            [ str fieldValue.Error.Value ] ]
               Level.level [ ]
                 [ Level.left [ ]
                     [ Level.item [ ]
-                        [ Button.button [ Button.isPrimary ]
+                        [ Button.button [ yield Button.isPrimary
+                                          yield Button.onClick (fun _ -> dispatch Submit)
+                                          if isWaiting then yield Button.isDisabled ]
                             [ str "Submit" ] ] ]
                   Level.right [ ]
                     [ Level.item [ ]
-                        [ str "Pres Ctrl + Enter to submit" ] ] ] ] ]
+                        [ str "Press Ctrl + Enter to submit" ] ] ] ] ]
 
 let answerView (answer : Shared.Types.Answer) =
     let createdAt = DateTime.Parse(answer.CreatedAt)
@@ -92,7 +112,7 @@ let root model dispatch =
               Columns.columns [ Columns.isCentered ]
                 [ Column.column [ Column.Width.isTwoThirds ]
                     [ questionView question model.Answers
-                      replyMedia ] ] ]
+                      replyMedia model.Reply model.IsWaitingReply dispatch ] ] ]
     | None ->
         Container.container [ ]
             [ str "Loading..." ]

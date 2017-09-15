@@ -63,7 +63,7 @@ type Answer =
       CreatedAt : string }
 
 [<Pojo>]
-type AnswerCreate =
+type CreateAnswer =
     { AuthorId : int
       Content : string }
 
