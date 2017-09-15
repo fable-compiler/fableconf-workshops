@@ -45,9 +45,8 @@ let navbar currentPage =
           Navbar.item_a [
               if currentPage = dashboardUrl then
                 yield Navbar.Item.isActive
-              yield Navbar.Item.props [ Href (toHash dashboardUrl) ]
-           ]
-            [ str "Dashboard" ]
+              yield Navbar.Item.props [ Href (toHash dashboardUrl) ] ]
+            [ str "Questions" ]
           Navbar.menu [ ]
             [ Navbar.start_div [ ]
                 [ Navbar.item_div [ Navbar.Item.hasDropdown

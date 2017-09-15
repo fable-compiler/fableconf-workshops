@@ -3,8 +3,8 @@ module Question.Show.State
 open Elmish
 open Types
 
-let init ()  =
-    Model.Empty, Cmd.ofMsg FetchQuestions
+let init id  =
+    Model.Empty, Cmd.ofMsg (FetchDetail id)
 
 let update msg model =
     match msg with
@@ -12,8 +12,9 @@ let update msg model =
         printfn "[Dashboard.State][Network error] %s" error.Message
         model, Cmd.none
 
-    | FetchQuestions ->
-        model, Cmd.ofPromise Rest.getQuestions () FetchQuestionsSuccess NetworkError
+    | FetchDetail id ->
+        model, Cmd.ofPromise Rest.getDetails id FetchDetailSuccess NetworkError
 
-    | FetchQuestionsSuccess result ->
-        { model with Questions = result |> Array.toList }, Cmd.none
+    | FetchDetailSuccess result ->
+        { model with Question = Some result.Question
+                     Answers = result.Answsers }, Cmd.none

@@ -30,6 +30,8 @@ app
 |> ignore
 
 // Routing
+// Prevent cache over JSON response
+app.set("etag", false) |> ignore
 
 app
 |> Express.Sugar.get
@@ -136,28 +138,30 @@ app
 
         let questionsWithUser : Shared.Types.Question [] =
             questions
-            |> Array.map(fun question ->
-                let author =
-                    Database.Users
-                        .find(createObj [ "Id" ==> question.AuthorId ])
-                        .value() |> unbox<Shared.Types.User>
-                printfn "%A" question.AuthorId
-                printfn "%A" author
-                { Id = question.Id
-                  Author =
-                    { Id = author.Id
-                      Firstname = author.Firstname
-                      Surname = author.Surname
-                      Email = author.Email
-                      Avatar = author.Avatar }
-                  Title = question.Title
-                  Description = question.Description
-                  CreatedAt = question.CreatedAt.ToString()
-                }
-            )
+            |> Array.map Transform.generateQuestion
 
         res.setHeader("Content-Type", !^"application/json")
         Express.Sugar.Response.send (toJson questionsWithUser) res
+    )
+|> Express.Sugar.get
+    "/question/:id"
+    (fun req res ->
+        let id = unbox<int> req.``params``?id
+        let questionDb =
+            Database.Questions
+                .find(createObj [ "Id" ==> id])
+                .value() |> unbox<QuestionDb>
+
+        let question : Shared.Types.QuestionShow =
+            { Question = Transform.generateQuestion questionDb
+              Answsers =
+                questionDb.Answsers
+                |> Array.map Transform.generateAnswer
+                |> Array.toList
+            }
+
+        res.setHeader("Content-Type", !^"application/json")
+        Express.Sugar.Response.send (toJson question) res
     )
 |> ignore
 
@@ -211,11 +215,22 @@ Database.Lowdb
                  Title = "What is the average wing speed of an unladen swallow?"
                  Description =
                     """
-Hello, yesterday I saw a flight of swallows and was wondering what their average wing speed is.
+Hello, yesterday I saw a flight of swallows and was wondering what their **average wing speed** is.
 
 If you know the answer please share it.
                     """
-                 CreatedAt = System.DateTime.UtcNow }
+                 CreatedAt = "2017-09-14T17:44:28.103Z"
+                 Answsers =
+                    [| { Id = 1
+                         AuthorId = 1
+                         Content = "Aliquam rhoncus nec mi eget dictum. Praesent ut ornare est. Vivamus porttitor orci sit amet turpis laoreet fringilla. Sed viverra massa a nulla fringilla placerat. Integer luctus iaculis convallis. Donec rhoncus consectetur risus, a egestas leo finibus quis. Etiam ultrices elit felis, ac imperdiet ipsum euismod rutrum. Aliquam et dolor sapien. Sed eget laoreet ex."
+                         CreatedAt = "2017-09-14T19:57:33.103Z" }
+                       { Id = 1
+                         AuthorId = 2
+                         Content = "Proin convallis scelerisque enim, mattis malesuada diam suscipit quis. Nulla consectetur purus sit amet nisl tempor, ac efficitur augue rhoncus. "
+                         CreatedAt = "2017-09-15T22:31:16.103Z" }
+                    |]
+               }
                { Id = 2
                  AuthorId = 1
                  Title = "Why did you create Fable ?"
@@ -224,7 +239,8 @@ If you know the answer please share it.
 Hello Alfonso,
 I wanted to know why did you create Fable. Did you always planned to use F# ? Or was you thinking to others languages ?
                     """
-                 CreatedAt = System.DateTime.UtcNow }
+                 CreatedAt = "2017-09-12T09:27:28.103Z"
+                 Answsers = [||] }
             |]
         }
     ).write()

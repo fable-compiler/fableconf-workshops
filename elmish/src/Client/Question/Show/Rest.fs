@@ -3,9 +3,9 @@ module Question.Show.Rest
 open Fable.PowerPack
 open Fable.PowerPack.Fetch
 
-let getQuestions id =
+let getDetails id =
     promise {
-        let url = serverUrl "/question/list"
-        let! res = fetchAs<Shared.Types.Question []> url []
+        let url = serverUrl (sprintf "/question/%i" id)
+        let! res = fetchAs<Shared.Types.QuestionShow> url []
         return res
     }

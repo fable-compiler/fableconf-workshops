@@ -54,3 +54,15 @@ type Question =
       Title : string
       Description : string
       CreatedAt : string }
+
+[<Pojo>]
+type Answer =
+    { Id : int
+      Author : UserInfo
+      Content : string
+      CreatedAt : string }
+
+[<Pojo>]
+type QuestionShow =
+    { Question : Question
+      Answsers : Answer list }

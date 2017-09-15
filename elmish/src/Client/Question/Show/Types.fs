@@ -1,12 +1,14 @@
 module Question.Show.Types
 
 type Model =
-    { Questions : Shared.Types.Question list }
+    { Question : Shared.Types.Question option
+      Answers : Shared.Types.Answer list }
 
     static member Empty =
-        { Questions = [] }
+        { Question =  None
+          Answers = [] }
 
 type Msg =
-    | FetchQuestions
+    | FetchDetail of int
     | NetworkError of exn
-    | FetchQuestionsSuccess of Shared.Types.Question []
+    | FetchDetailSuccess of Shared.Types.QuestionShow

@@ -6,6 +6,7 @@
     <ProjectReference Include="../Shared/Shared.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Import/Fable.Import.Marked.fs" />
     <Compile Include="Logger.fs" />
     <Compile Include="Lenses.fs" />
     <Compile Include="Global.fs" />

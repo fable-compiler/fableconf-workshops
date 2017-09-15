@@ -7,13 +7,20 @@ open Helpers
 open Shared.Types
 
 [<Pojo>]
+type AnswerDb =
+    { Id : int
+      AuthorId : int
+      Content : string
+      CreatedAt : string }
+
+[<Pojo>]
 type QuestionDb =
     { Id : int
       AuthorId : int
       Title : string
       Description : string
-      CreatedAt : System.DateTime }
-
+      CreatedAt : string
+      Answsers : AnswerDb [] }
 
 [<Pojo>]
 type DatabaseData =

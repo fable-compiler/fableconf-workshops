@@ -11,6 +11,7 @@
         <Compile Include="Helpers.fs" />
         <Compile Include="Express.fs" />
         <Compile Include="Database.fs" />
+        <Compile Include="Transform.fs" />
         <Compile Include="App.fs" />
     </ItemGroup>
     <ItemGroup>

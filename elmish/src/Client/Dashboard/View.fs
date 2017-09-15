@@ -45,6 +45,7 @@ open System
 //           replyMedia ]
 
 let questionView (question : Shared.Types.Question) =
+    Logger.log question.CreatedAt
     let createdAt = DateTime.Parse(question.CreatedAt)
     let url = AuthenticatedPage.Question >> AuthPage >> toHash
 
@@ -60,13 +61,16 @@ let questionView (question : Shared.Types.Question) =
                       Level.right [ ]
                         [ Level.item [ ]
                             [ Help.help [ ]
-                                [ str (sprintf "Asked by %s %s, %s" question.Author.Firstname question.Author.Surname (createdAt.ToString("yyyy-MM-dd hh:mm:ss"))) ] ] ] ] ] ]
+                                [ str (sprintf "Asked by %s %s, %s"
+                                                    question.Author.Firstname
+                                                    question.Author.Surname
+                                                    (createdAt.ToString("yyyy-MM-dd HH:mm:ss"))) ] ] ] ] ] ]
 
 let root model dispatch =
     Container.container [ ]
         [ Section.section [ ]
             [ Heading.p [ Heading.is5 ]
-                [ str "Lastest questions" ] ]
+                [ str "Latest questions" ] ]
           Columns.columns [ Columns.isCentered ]
             [ Column.column [ Column.Width.isTwoThirds ]
                 (model.Questions |> List.map questionView ) ] ]

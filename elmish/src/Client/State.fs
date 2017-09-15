@@ -13,6 +13,7 @@ let pageParser: Parser<Page->Page,Page> =
       map SignIn (s "sign-in")
       map (ReloadToken >> Session) (s "session" <?> stringParam "nextUrl")
       map (AuthPage Dashboard) (s "dashboard")
+      map (AuthenticatedPage.Question >> AuthPage) (s "question" </> i32)
       map (AuthPage (Admin Index)) (s "admin")
       map (AuthPage (Admin (User AdminUserPage.Index))) (s "admin" </> s "user")
       map (AuthPage (Admin (User AdminUserPage.Create))) (s "admin" </> s "user" </> s "create")
@@ -46,14 +47,14 @@ let urlUpdate (result: Option<Page>) model =
             | Some session ->
                 match authPage with
                 | Dashboard ->
-                    let (subModel, subMsg) = Dashboard.State.init ()
-                    { model with Dashboard = subModel }, Cmd.map DashboardMsg subMsg
+                    let (subModel, subCmd) = Dashboard.State.init ()
+                    { model with Dashboard = subModel }, Cmd.map DashboardMsg subCmd
                 | Question id ->
-                    Logger.error "joijojo jiojoi jojoj o"
-                    model, Cmd.none
+                    let (subModel, subCmd) = Question.Show.State.init id
+                    { model with QuestionModel = subModel }, Cmd.map QuestionMsg subCmd
                 | Admin adminPage ->
-                    let (subModel, subMsg) = Admin.Dispatcher.State.init adminPage
-                    { model with AdminModel = subModel }, Cmd.map AdminMsg subMsg
+                    let (subModel, subCmd) = Admin.Dispatcher.State.init adminPage
+                    { model with AdminModel = subModel }, Cmd.map AdminMsg subCmd
             | None ->
                 match LocalStorage.Token with
                 | null ->
@@ -69,6 +70,7 @@ let init result =
           AdminModel = Admin.Dispatcher.Types.Model.Empty
           Dashboard = Dashboard.Types.Model.Empty
           SignIn = SignIn.State.init ()
+          QuestionModel = Question.Show.Types.Model.Empty
           Session = None }
 
 
@@ -85,3 +87,7 @@ let update msg (model:Model) =
     | SignInMsg msg ->
         let (signIn, signInMsg) = SignIn.State.update msg model.SignIn
         { model with SignIn = signIn}, Cmd.map SignInMsg signInMsg
+
+    | QuestionMsg msg ->
+        let (question, questionMsg) = Question.Show.State.update msg model.QuestionModel
+        { model with QuestionModel = question}, Cmd.map QuestionMsg questionMsg
