@@ -291,5 +291,5 @@ elmish/output
 **/node_modules
 **/packages
 **/paket-files
-elmish/ressources/*
-!elmish/ressources/.keep
+elmish/resources/*
+!elmish/resources/.keep

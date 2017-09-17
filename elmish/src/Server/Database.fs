@@ -28,7 +28,7 @@ type DatabaseData =
       Questions : QuestionDb []
       Answers : AnswerDb [] }
 
-let dbFile = resolve("../../ressources/db.json")
+let dbFile = resolve("../../resources/db.json")
 let adapter = Lowdb.FileSyncAdapter(dbFile)
 
 let mutable ``do not use directly db`` : Lowdb.Lowdb option = Option.None
