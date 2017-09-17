@@ -33,7 +33,6 @@ var basicConfig = {
                     options: {
                         babel: babelOptions,
                         define: isProduction ? [] : ["DEBUG"],
-                        port: 47283
                     }
                 }
             },

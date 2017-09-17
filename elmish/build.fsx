@@ -51,11 +51,11 @@ Target "YarnInstall" (fun _ ->
 )
 
 Target "Watch" (fun _ ->
-    runDotnet "" """fable webpack --port 47283 -- -w"""
+    runDotnet "" """fable webpack --port free -- -w"""
 )
 
 Target "Build" (fun _ ->
-    runDotnet "" """fable webpack --port 47283 -- -p"""
+    runDotnet "" """fable webpack --port free -- -p"""
 )
 
 // Tests
