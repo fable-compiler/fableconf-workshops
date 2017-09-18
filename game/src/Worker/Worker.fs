@@ -20,15 +20,17 @@ type WorkerModel =
     { World: P2.World
       Ship: P2.Body
       Mace: P2.Body
-      Asteroids: P2.Body[] }
+      Asteroids: P2.Body[]
+      Ids: Map<float, Guid> }
+
+type IEvent =
+    abstract ``type``: string
 
 let step (timestep: float) (world: P2.World) (events: string list) =
-    // TODO: Make sure events elements are distinct?
-    let evResults = Dictionary()
-    for ev in events do
-        evResults.Add(ev, ResizeArray())
+    let evResults = ResizeArray<IEvent>()
     let listeners =
-        events |> List.map (fun evName -> evName, (fun e -> evResults.[evName].Add(e)))
+        events |> List.map (fun evName ->
+            evName, (fun e -> evResults.Add(!!e)))
     // Subscribe listeners
     for evName, lis in listeners do
         world.on(evName, lis) |> ignore
@@ -37,6 +39,7 @@ let step (timestep: float) (world: P2.World) (events: string list) =
     // Unsubscribe listeners
     for evName, lis in listeners do
         world.off(evName, lis) |> ignore
+    // assert (evResults.Count = 0)
     evResults
 
 let warp (body: P2.Body) =
@@ -63,8 +66,19 @@ let updatePhysics (model: WorkerModel) (msg: WorkerMsg) =
     for asteroid in model.Asteroids do
         warp asteroid
 
-    let timestep = msg.Timestep
-    let _ = step timestep model.World ["impact"]
+    let evs = step msg.Timestep model.World ["impact"]
+    let collisions =
+        evs |> Seq.choose (fun ev ->
+            match ev.``type`` with
+            | "impact" ->
+                let idA = Map.tryFind (!!ev?bodyA?id) model.Ids
+                let idB = Map.tryFind (!!ev?bodyB?id) model.Ids
+                match idA, idB with
+                | Some idA, Some idB ->
+                    Some { IdA = idA; IdB = idB; Multiplier = !!ev?contactEquation?multiplier }
+                | _ -> None
+            | _ -> None)
+        |> Seq.toArray
 
     let keyUp    = if msg.KeyUp    then 1. else 0.
     let keyLeft  = if msg.KeyLeft  then 1. else 0.
@@ -73,8 +87,9 @@ let updatePhysics (model: WorkerModel) (msg: WorkerMsg) =
     model.Ship.applyForceLocal((0., keyUp * 2.))
     // Set turn velocity of ship
     model.Ship.angularVelocity <- (keyLeft - keyRight) * Init.shipTurnSpeed
+    collisions
 
-let fillAndSendBuffer (model: WorkerModel) (buffer: float[]) =
+let fillBufferAndSendMessageBack (model: WorkerModel) (buffer: float[]) (collisions: Collision[]) =
     buffer.[0] <- fst model.Ship.interpolatedPosition
     buffer.[1] <- snd model.Ship.interpolatedPosition
     buffer.[2] <- model.Ship.interpolatedAngle
@@ -85,7 +100,8 @@ let fillAndSendBuffer (model: WorkerModel) (buffer: float[]) =
         buffer.[5 + (i*3)] <- fst asteroid.interpolatedPosition
         buffer.[6 + (i*3)] <- snd asteroid.interpolatedPosition
         buffer.[7 + (i*3)] <- asteroid.interpolatedAngle
-    postMessageAndTransferBuffer buffer buffer self
+    let msg = { Buffer = buffer; Collisions = collisions }
+    postMessageAndTransferBuffer msg buffer self
 
 let createAsteroidShape(radius: float): P2.Shape =
     upcast P2.Circle(makeOpts(fun o ->
@@ -132,7 +148,7 @@ let createBound(x: float, y: float, angle: float) =
     shape.collisionMask <- Init.SHIP ||| Init.MACE
     body
 
-let initModel(level: int): WorkerModel =
+let initModel(msg: WorkerMsg): WorkerModel =
     let world = P2.World(createObj["gravity" ==> (0.,0.)])
     // Turn off friction, we don't need it.
     world.defaultContactMaterial.friction <- 0.
@@ -178,35 +194,16 @@ let initModel(level: int): WorkerModel =
     world.addBody(createBound( Init.spaceWidth / 2., 0., Math.PI / 2.))
     world.addBody(createBound(-Init.spaceWidth / 2., 0., 3. * Math.PI / 2.))
 
+    let asteroids = createAsteroids msg.Level world
+
     { World = world
       Ship = shipBody
       Mace = maceBody
-      Asteroids = (createAsteroids level world) }
-
-//let catchImpacts(world: P2.World) =
-    //world.on("beginContact", fun evt ->
-    //    let bodyA: P2.Body = !!evt?bodyA
-    //    let bodyB: P2.Body = !!evt?bodyB
-
-    //    if not hideShip && allowShipCollision && (bodyA = shipBody || bodyB = shipBody) then
-    //        // Ship collided with something
-    //        allowShipCollision <- false
-
-    //        let otherBody = if bodyA = shipBody then bodyB else bodyA
-    //        if asteroids.indexOf(otherBody) <> -1 then
-    //            lives <- lives - 1
-    //            updateLives()
-    //            // Remove the ship body for a while
-    //            removeBodies.push(shipBody)
-    //            hideShip <- true
-
-    //        if lives > 0 then
-    //            failwith "TODO"
-    //        else
-    //            failwith "TODO: Game over"
-    //    // Bullet collision
-    //    // elif bulletBodies.indexOf(bodyA) <> -1 || bulletBodies.indexOf(bodyB) <> -1 then
-    //) |> ignore
+      Asteroids = asteroids
+      Ids =
+        asteroids |> Array.mapi (fun i a -> (a.id, msg.Ids.[i+2]))
+        |> Array.append [| (shipBody.id, msg.Ids.[0]); (maceBody.id, msg.Ids.[1]) |]
+        |> Map }
 
 let init() =
     let mutable model = None
@@ -216,10 +213,10 @@ let init() =
             match model with
             | Some m -> m
             | None ->
-                let m = initModel msg.Level
+                let m = initModel msg
                 model <- Some m
                 m
-        updatePhysics model msg
-        fillAndSendBuffer model msg.Buffer)
+        let collisions = updatePhysics model msg
+        fillBufferAndSendMessageBack model msg.Buffer collisions)
 
 init()

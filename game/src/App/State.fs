@@ -8,16 +8,19 @@ open Fable.Import.Browser
 // We could hide this behind an interface,
 // but records serialize much better with the debugger.
 type Ship =
-    { mutable X: float
+    { Id: Guid
+      mutable X: float
       mutable Y: float
       mutable Angle: float }
 
 type Mace =
-    { mutable X: float
+    { Id: Guid
+      mutable X: float
       mutable Y: float }
 
 type Asteroid =
-    { mutable X: float
+    { Id: Guid
+      mutable X: float
       mutable Y: float
       mutable Angle: float
       Vertices: (float*float)[] }
@@ -38,7 +41,7 @@ type Model =
 type Msg =
     | KeyUp of code: float
     | KeyDown of code: float
-    | Physics of float[]
+    | Physics of float[] * Collision[]
 
 /// Data array. Contains all our data we need for rendering.
 /// It will be sent back and forth from the main thread and the worker thread.
@@ -47,15 +50,31 @@ let createPhysicsBuffer(): float[] =
     Array.zeroCreate (3 (* ship *) + 3 (* mace *) + (3 * Init.maxLevel) (* asteroids *))
 
 let sendWorkerMessage timestep (model: Model) (buffer: float[]) =
+    let ids =
+        Array.map (fun a -> a.Id) model.Asteroids
+        |> Array.append [| model.Ship.Id; model.Mace.Id |]
     { Buffer = buffer
+      Ids = ids
       Timestep = timestep / 1000. // Convert to ms
       Level = model.Level
       KeyUp = model.Keys.Up
       KeyLeft = model.Keys.Left
       KeyRight = model.Keys.Right }
 
+let receiveWorkerMessage (msg: WorkerMsgBack) =
+    let buffer = msg.Buffer
+    let msg2 =
+        // In Debug mode, copy the array to avoid issues with the debugger
+        #if DEBUG
+        Physics(Array.copy buffer, msg.Collisions)
+        #else
+        Physics(buffer, msg.Collisions)
+        #endif
+    buffer, msg2
+
 let createAsteroid(radius: float): Asteroid =
-    { X = 0.
+    { Id = Guid.NewGuid()
+      X = 0.
       Y = 0.
       Angle = 0.
       Vertices =
@@ -76,8 +95,8 @@ let subscribeToKeyEvents dispatch =
 let initModel(level) =
     let radius = Init.calculateRadius(level)
     let model =
-        { Ship = { X=0.; Y=0.; Angle=0. }
-          Mace = { X=0.; Y=0. }
+        { Ship = { Id = Guid.NewGuid(); X=0.; Y=0.; Angle=0. }
+          Mace = { Id = Guid.NewGuid(); X=0.; Y=0. }
           Asteroids = Array.init level (fun _ -> createAsteroid radius)
           Level = level
           Keys = { Up=false; Left=false; Right=false }
@@ -87,7 +106,7 @@ let initModel(level) =
 let update (msg: Msg) (model: Model) =
     let model =
         match msg with
-        | Physics data ->
+        | Physics(data, collisions) ->
             let model =
                 if not model.Initialized
                 then { model with Initialized = true }
@@ -102,6 +121,8 @@ let update (msg: Msg) (model: Model) =
                 asteroid.X     <- data.[5 + (i*3)]
                 asteroid.Y     <- data.[6 + (i*3)]
                 asteroid.Angle <- data.[7 + (i*3)]
+            for col in collisions  do
+                printfn "%A" col
             model
         | KeyDown code ->
             match code with

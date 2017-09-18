@@ -4,14 +4,22 @@ open System
 open Fable.Core
 open Fable.Import
 
-// Use a Pojo recrod so it serializes well in JS
+// Use a Pojo record so it serializes well in JS
 type [<Pojo>] WorkerMsg =
     { Buffer: float[]
+      Ids: Guid[]
       Timestep: float
       Level: int
       KeyUp: bool
       KeyLeft: bool
       KeyRight: bool }
+
+type [<Pojo>] Collision =
+    { IdA: Guid; IdB: Guid; Multiplier: float }
+
+type [<Pojo>] WorkerMsgBack =
+    { Buffer: float[]
+      Collisions: Collision[] }
 
 module Init =
     let [<Literal>] lives = 3

@@ -7,14 +7,6 @@ open Elmish.Worker
 open Elmish.Debug
 open Fable.Import
 
-let inline receiveBuffer (ar: float[]) =
-    // In Debug mode, copy the array to avoid issues with the debugger
-    #if DEBUG
-    Array.copy ar |> Physics
-    #else
-    Physics ar
-    #endif
-
 let subscribeToAnimationPause (toggle: unit->unit) =
     Browser.window.addEventListener_keyup(fun ev ->
         if ev.keyCode = 80. then // [P]ause
@@ -29,7 +21,7 @@ let init() =
     |> Program.withPhysicsWorker
         Init.workerURL buffer
         State.sendWorkerMessage
-        receiveBuffer
+        State.receiveWorkerMessage
         subscribeToAnimationPause
     #if DEBUG
     |> Program.withDebuggerDebounce 200

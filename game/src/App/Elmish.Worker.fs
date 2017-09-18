@@ -22,7 +22,7 @@ let withPhysicsWorker
     (workerUrl: string)
     (buffer: float[])
     (send: float->'model->float[]->'workerMsg)
-    (receive: float[]->'msg)
+    (receive: 'workerMsgBack->float[]*'msg)
     (pauseAnimation: (unit->unit)->unit)
     (program:Elmish.Program<_,'model,'msg,_>) =
 
@@ -49,9 +49,10 @@ let withPhysicsWorker
     let init arg =
         let subscribeWorker dispatch =
             observeWorker worker
-            |> Observable.add (fun buffer ->
+            |> Observable.add (fun (msg: 'workerMsgBack) ->
+                let buffer, msg2 = receive msg
                 bufferRef := Some buffer
-                receive buffer |> dispatch)
+                dispatch msg2)
         let subscribeAnimation dispatch =
             requestFrame (animate dispatch 0.)
         let subscribeAnimationPause dispatch =
