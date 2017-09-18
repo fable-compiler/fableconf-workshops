@@ -8,9 +8,22 @@ open Shared
 let inline private requestFrame f =
     Browser.window.requestAnimationFrame(Browser.FrameRequestCallback f) |> ignore
 
+/// Run Elmish with a web worker that calculate physics for each animation frame
+/// - workerUrl: URL of web worker script
+/// - buffer: float array to contain physics data, ownership will be transferred between app and worker
+/// - send: Produce the message (which must be JSON serializable) to be sent to worker:
+///     + time (s) since last frame
+///     + current app model
+///     + float array that will be transferred to worker
+/// - receive: get the physics data and produce a message to dispatch to Elmish
+/// - pauseAnimation: subscribe to an event (e.g. a key press) to toggle the animation
+/// - program: Elmish program
 let withPhysicsWorker
-    workerUrl (buffer: float[])
-    (receive: float[]->'msg) (send: float->'model->float[]->'workerMsg)
+    (workerUrl: string)
+    (buffer: float[])
+    (send: float->'model->float[]->'workerMsg)
+    (receive: float[]->'msg)
+    (pauseAnimation: (unit->unit)->unit)
     (program:Elmish.Program<_,'model,'msg,_>) =
 
     // TODO: Is there a better way to handle this?
@@ -41,16 +54,14 @@ let withPhysicsWorker
                 receive buffer |> dispatch)
         let subscribeAnimation dispatch =
             requestFrame (animate dispatch 0.)
-        // TODO: Let the user decide the event to toggle animation
-        let subscribePauseKey dispatch =
-            Browser.window.addEventListener_keyup(fun ev ->
-                if ev.keyCode = 80. then // [P]ause
-                    animating <- not animating
-                    if animating then
-                        requestFrame (animate dispatch 0.)
-                null)
+        let subscribeAnimationPause dispatch =
+            let toggle() =
+                animating <- not animating
+                if animating then
+                    requestFrame (animate dispatch 0.)
+            pauseAnimation toggle
         let model, cmd = program.init arg
-        model, cmd @ [subscribeWorker; subscribeAnimation; subscribePauseKey]
+        model, cmd @ [subscribeWorker; subscribeAnimation; subscribeAnimationPause]
 
     let setState m dispatch =
         model <- m
