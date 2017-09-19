@@ -9,6 +9,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "App", "src\App\App.fsproj",
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Worker", "src\Worker\Worker.fsproj", "{D4921B6D-2F32-43C0-8484-ECB21A1A3556}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fable", "src\Fable.fsproj", "{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,18 @@ Global
 		{D4921B6D-2F32-43C0-8484-ECB21A1A3556}.Release|x64.Build.0 = Release|x64
 		{D4921B6D-2F32-43C0-8484-ECB21A1A3556}.Release|x86.ActiveCfg = Release|x86
 		{D4921B6D-2F32-43C0-8484-ECB21A1A3556}.Release|x86.Build.0 = Release|x86
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|x64.ActiveCfg = Debug|x64
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|x64.Build.0 = Debug|x64
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|x86.ActiveCfg = Debug|x86
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Debug|x86.Build.0 = Debug|x86
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|x64.ActiveCfg = Release|x64
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|x64.Build.0 = Release|x64
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|x86.ActiveCfg = Release|x86
+		{63D89DF2-BDA3-4263-83BE-B46E2D1B8021}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{989A86B6-916F-46E0-9477-10F8B0A9C0A4} = {4DFC582D-A2F8-44E5-8BF2-E8BCA2185B1A}
