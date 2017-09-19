@@ -103,10 +103,23 @@ let initModel(level) =
           Initialized = false }
     model, [subscribeToKeyEvents]
 
+let printCollisions (collisions: Collision[]) (model: Model) =
+    let ids =
+        Array.mapi (fun i a -> a.Id, "ast" + (string i)) model.Asteroids
+        |> Array.append [| (model.Ship.Id, "ship"); (model.Mace.Id, "mace") |]
+        |> Map
+    for col in collisions do
+        match Map.tryFind col.IdA ids, Map.tryFind col.IdB ids with
+        | Some nameA, Some nameB ->
+            // Note the formatting capabilities: left padding, decimal digits...AnalyserNodeType
+            printfn "Collision %5s <-> %5s: %8.3f" nameA nameB col.Multiplier
+        | _ -> ()
+
 let update (msg: Msg) (model: Model) =
     let model =
         match msg with
         | Physics(data, collisions) ->
+            printCollisions collisions model
             let model =
                 if not model.Initialized
                 then { model with Initialized = true }
@@ -121,8 +134,6 @@ let update (msg: Msg) (model: Model) =
                 asteroid.X     <- data.[5 + (i*3)]
                 asteroid.Y     <- data.[6 + (i*3)]
                 asteroid.Angle <- data.[7 + (i*3)]
-            for col in collisions  do
-                printfn "%A" col
             model
         | KeyDown code ->
             match code with
