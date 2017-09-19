@@ -20,7 +20,7 @@ let data =
        { name = "Page E"; uv = 278. }
        { name = "Page F"; uv = 189. } |]
 
-let view() =
+let lineChartView() =
     lineChart [
         Width 600.
         Height 300.
@@ -45,8 +45,13 @@ let view() =
         tooltip []
     ]
 
+let barChartView() =
+    barChart [Width 150.; Height 40.; Data data] [
+        bar [DataKey "uv"; SVG.Fill "#8884d8"]
+    ]
+
 let renderApp() =
-    let reactEl = view()
+    let reactEl = barChartView()
     let domEl = Browser.document.getElementById("react-container")
     ReactDom.render(reactEl, domEl)
 
