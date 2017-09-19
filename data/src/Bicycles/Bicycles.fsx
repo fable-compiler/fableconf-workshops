@@ -43,7 +43,24 @@ on the sample, and start exploring using IntelliSense.
 open System
 open System.IO
 open FSharp.Data
+open Newtonsoft.Json
 // open XPlot.GoogleCharts
+
+let writeJson path data =
+    let path = Path.Combine(__SOURCE_DIRECTORY__, path)
+    let dir = Path.GetDirectoryName(path)
+    if Directory.Exists(dir) |> not then
+        Directory.CreateDirectory(dir) |> ignore
+    let json = JsonConvert.SerializeObject(data)
+    File.WriteAllText(path, json)
+
+// Test
+type TestData = { name: string; value: int }
+
+Array.init 10 (fun i ->
+    { name = sprintf "value%i" i; value = i * 100 })
+// |> Array.rev
+|> writeJson "../../build/test.json"
 
 // we create a type based on sample data
 type Dataset = CsvProvider<"../../data/day.csv">

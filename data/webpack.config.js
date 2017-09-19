@@ -47,6 +47,10 @@ module.exports = {
           loader: 'babel-loader',
           options: babelOptions
         },
+      },
+      {
+        test: /\.json$/,
+        loader: 'json-loader'
       }
     ]
   }
