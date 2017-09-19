@@ -159,6 +159,7 @@ module Imports =
 
     // General Components
     let tooltipEl: obj = import "Tooltip" "recharts"
+    let legendEl: obj = import "Legend" "recharts"
 
     // Cartesian Components
     let lineEl: obj = import "Line" "recharts"
@@ -181,6 +182,10 @@ let inline barChart (props: ChartProp list) (children: RechartComponent list): R
 // TODO: Tooltip props
 let inline tooltip (props: obj list): RechartComponent =
     applySpread createEl (tooltipEl, keyValueList CaseRules.LowerFirst props, [])
+
+// TODO: Legend props
+let inline legend (props: obj list): RechartComponent =
+    applySpread createEl (legendEl, keyValueList CaseRules.LowerFirst props, [])
 
 let inline bar (props: IProp list): RechartComponent =
     applySpread createEl (barEl, keyValueList CaseRules.LowerFirst props, [])

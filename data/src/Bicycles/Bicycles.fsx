@@ -28,10 +28,10 @@ on the sample, and start exploring using IntelliSense.
 
 // #I "../packages/script/XPlot.GoogleCharts/lib/net45"
 // #I "../packages/script/Google.DataTable.Net.Wrapper/lib"
-#I "../packages/script/Newtonsoft.Json/lib/net40"
-#I "../packages/script/FSharp.Data/lib/net40"
-#I "../packages/script/MathNet.Numerics/lib/net40"
-#I "../packages/script/MathNet.Numerics.FSharp/lib/net40"
+#I "../../packages/script/Newtonsoft.Json/lib/net40"
+#I "../../packages/script/FSharp.Data/lib/net40"
+#I "../../packages/script/MathNet.Numerics/lib/net40"
+#I "../../packages/script/MathNet.Numerics.FSharp/lib/net40"
 
 // #r "XPlot.GoogleCharts.dll"
 // #r "Google.DataTable.Net.Wrapper.dll"
@@ -46,11 +46,11 @@ open FSharp.Data
 // open XPlot.GoogleCharts
 
 // we create a type based on sample data
-type Dataset = CsvProvider<"../data/day.csv">
+type Dataset = CsvProvider<"../../data/day.csv">
 type Datapoint = Dataset.Row
 
 // we can now read data...
-let dataset = Dataset.Load("../data/day.csv")
+let dataset = Dataset.Load("../../data/day.csv")
 let data = dataset.Rows
 
 // ... which is statically typed
@@ -332,8 +332,8 @@ dataset, to see if we can produce better prediction models!
 
 // we separated the dataset into 2 parts, one for training,
 // one for testing the quality of our model.
-let train = Dataset.Load("../data/train.csv")
-let test = Dataset.Load("../data/test.csv")
+let train = Dataset.Load("../../data/train.csv")
+let test = Dataset.Load("../../data/test.csv")
 
 // for our first model, we will use a constant (1.0), and
 // day.Instant as features.
