@@ -27,20 +27,15 @@ Target "InstallDotNetCore" (fun _ ->
 
 Target "Clean" (fun _ ->
     !! "/output"
-    ++ "/bin"
-    ++ "/obj"
-    ++ "/src/bin"
-    ++ "/src/obj"
+    ++ "/src/**/bin"
+    ++ "/src/**/obj"
   |> CleanDirs
 )
 
 // Dependencies
 
 Target "Restore" (fun _ ->
-    !! "**/*.fsproj"
-    |> Seq.iter (fun s ->
-        let dir = IO.Path.GetDirectoryName s
-        runDotnet dir "restore")
+    runDotnet __SOURCE_DIRECTORY__ "restore FableConf.Elmish.sln"
 )
 
 Target "YarnInstall" (fun _ ->
