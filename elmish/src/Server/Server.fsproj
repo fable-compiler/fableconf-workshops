@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="Libs/Fable.Import.Watch.fs" />
+        <Compile Include="Libs/Fable.Import.Lowdb.fs" />
+        <Compile Include="Libs/Fable.Import.BodyParser.fs" />
+        <Compile Include="Libs/Fable.Import.Morgan.fs" />
+        <Compile Include="Helpers.fs" />
+        <Compile Include="Express.fs" />
+        <Compile Include="Database.fs" />
+        <Compile Include="Transform.fs" />
+        <Compile Include="App.fs" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../Shared/Shared.fsproj" />
+    </ItemGroup>
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

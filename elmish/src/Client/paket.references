@@ -1,0 +1,9 @@
+FSharp.Core
+Fable.Core
+Fable.Elmish.React
+Fable.Elmish.Browser
+Fable.Elmish.Debugger
+dotnet-fable
+Fulma
+Fulma.Extensions
+Fable.PowerPack

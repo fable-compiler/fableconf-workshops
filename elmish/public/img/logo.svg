@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg2" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="79.446mm" viewBox="0 0 526.50004 281.5" width="148.59mm" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <metadata id="metadata7">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer4" transform="translate(-13 -330.36)">
+  <rect id="rect4166" height="276.72" width="521.72" stroke="#fff" y="332.75" x="15.389" stroke-width="4.7776" fill="#fff"/>
+ </g>
+ <g id="layer3" stroke="#000" stroke-width="4" transform="translate(-13 -330.36)">
+  <path id="path4140" fill="none" d="m86.25 427.1v70"/>
+  <path id="path4142" fill-rule="evenodd" fill="#0055a4" d="m156.25 377.1h-70v40"/>
+  <path id="path4144" fill="none" d="m86.25 507.1v60"/>
+  <g id="g10" fill-rule="evenodd">
+   <path id="path4146" fill="#0055a4" d="m106.25 442.1 30 20-30 20"/>
+   <path id="path4148" fill="#0055a4" d="m136.25 567.1 40-190h20l30 150"/>
+   <path id="path4150" fill="#fff" d="m216.25 375.1 30 150h50v-70h-30l-33.665 0.0126"/>
+  </g>
+ </g>
+ <g id="layer1" transform="translate(-13 -330.36)">
+  <path id="path4170" d="m470 462.29h-93.599v-89.575h89.575l-89.575 89.575" fill-rule="evenodd" stroke="#000" stroke-width="4" fill="#ef4135"/>
+ </g>
+ <g id="layer2" transform="translate(-13 -330.36)">
+  <g id="text5379" fill="#808080">
+   <path id="path4152" d="m354.48 568.38h-5.2q-2.44 0-3.92-1.48-1.44-1.48-1.44-3.96v-14.84q0-2.48 1.44-3.96 1.48-1.48 3.92-1.48h5.2q2.44 0 3.88 1.48 1.48 1.48 1.48 3.96v2q0 0.36-0.32 0.36h-0.56q-0.32 0-0.32-0.36v-1.96q0-2.04-1.08-3.2t-3.08-1.16h-5.2q-2 0-3.08 1.16t-1.08 3.2v14.76q0 2.04 1.08 3.2t3.08 1.16h5.2q2 0 3.08-1.16t1.08-3.2v-1.96q0-0.36 0.32-0.36h0.56q0.32 0 0.32 0.36v2q0 2.48-1.48 3.96-1.44 1.48-3.88 1.48z"/>
+   <path id="path4154" d="m371 567.26h5q2 0 3.08-1.16t1.08-3.2v-14.76q0-2.04-1.08-3.2t-3.08-1.16h-5q-2 0-3.08 1.16t-1.08 3.2v14.76q0 2.04 1.08 3.2t3.08 1.16zm5 1.12h-5q-2.44 0-3.92-1.48-1.44-1.48-1.44-3.96v-14.84q0-2.48 1.44-3.96 1.48-1.48 3.92-1.48h5q2.44 0 3.88 1.48 1.48 1.48 1.48 3.96v14.84q0 2.48-1.48 3.96-1.44 1.48-3.88 1.48z"/>
+   <path id="path4156" d="m389.02 568.38h-0.56q-0.32 0-0.32-0.36v-25q0-0.36 0.32-0.36h0.56q0.2 0 0.28 0.16l13.4 22.68h0.16v-22.48q0-0.36 0.32-0.36h0.56q0.32 0 0.32 0.36v25q0 0.36-0.32 0.36h-0.4q-0.28 0-0.48-0.32l-13.36-22.6h-0.16v22.56q0 0.36-0.32 0.36z"/>
+   <path id="path4159" d="m412.15 568.38h-0.56q-0.32 0-0.32-0.36v-25q0-0.36 0.32-0.36h12.2q0.36 0 0.36 0.32v0.48q0 0.32-0.36 0.32h-10.96q-0.36 0-0.36 0.32v10.64q0 0.32 0.36 0.32h9.88q0.36 0 0.36 0.32v0.48q0 0.32-0.36 0.32h-9.88q-0.36 0-0.36 0.32v11.52q0 0.36-0.32 0.36z"/>
+   <path id="path4161" d="m441.12 550.74h-0.12q-0.36 0-0.36-0.4l-0.28-7.28q0-0.4 0.36-0.4h0.68q0.36 0 0.36 0.4l-0.28 7.28q-0.12 0.4-0.36 0.4z"/>
+   <path id="path4163" d="m446.3 546.86v-0.24q0-0.52 0.44-0.76l5.4-3q0.4-0.2 0.64-0.2h0.48q0.32 0 0.32 0.36v25q0 0.36-0.32 0.36h-0.56q-0.32 0-0.32-0.36v-24.04l-5.44 3.08q-0.64 0.44-0.64-0.2z"/>
+   <path id="path4165" d="m461.48 568.38h-0.4q-0.48 0-0.24-0.56l8.84-24.04h-11.6q-0.36 0-0.36-0.32v-0.48q0-0.32 0.36-0.32h12.56q0.36 0 0.36 0.32v0.4q0 0.28-0.12 0.56l-8.84 24.08q-0.12 0.36-0.56 0.36z"/>
+  </g>
+ </g>
+ <path id="path4158" stroke="#000" stroke-width="4" fill="none" d="m302 40v155h155"/>
+</svg>
