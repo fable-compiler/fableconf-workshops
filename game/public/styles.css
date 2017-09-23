@@ -1,0 +1,46 @@
+body {
+  background-color: black;
+  margin:0;
+  padding:0;
+  overflow: hidden;
+  color:white;
+  font-family:"Courier New", Courier, monospace;
+  font-size: 24px;
+}
+a {
+  color:white;
+  text-decoration: none;
+  font-weight: bold;
+}
+canvas {
+  width:100%;
+  height:100%;
+}
+.textBox {
+  margin:10px;
+  display: inline-block;
+}
+.textBox.centered {
+  width:500px;
+  height:100px;
+  margin-left: -250px;
+  margin-top: -50px;
+  position: absolute;
+  top:50%;
+  left:50%;
+  vertical-align: middle;
+  text-align: center;
+}
+.textBox.bottomRight {
+  position:absolute;
+  right:0;
+  bottom:0;
+}
+.textBox.bottomLeft {
+  position:absolute;
+  left:0;
+  bottom:0;
+}
+.hidden {
+  display: none;
+}
