@@ -47,6 +47,7 @@ module Props =
         | Wye
         | [<CompiledName("none")>] NoLegend
 
+    [<StringEnum>]
     type Easing =
         | Ease
         | [<CompiledName("ease-in")>] EaseIn
