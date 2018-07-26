@@ -4,18 +4,14 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="Libs/Fable.Import.Watch.fs" />
-        <Compile Include="Libs/Fable.Import.Lowdb.fs" />
-        <Compile Include="Libs/Fable.Import.BodyParser.fs" />
-        <Compile Include="Libs/Fable.Import.Morgan.fs" />
+        <Compile Include="../Shared/Types.fs" />
+        <Compile Include="Import/Fable.Import.Express.fs" />
+        <Compile Include="Import/Fable.Import.Lowdb.fs" />
+        <Compile Include="Import/Fable.Import.BodyParser.fs" />
         <Compile Include="Helpers.fs" />
-        <Compile Include="Express.fs" />
         <Compile Include="Database.fs" />
         <Compile Include="Transform.fs" />
         <Compile Include="App.fs" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="../Shared/Shared.fsproj" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

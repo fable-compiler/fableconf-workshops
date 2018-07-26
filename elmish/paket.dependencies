@@ -1,25 +1,22 @@
 source https://nuget.org/api/v2
 
 storage:none
+framework:netstandard2.0
 
+clitool dotnet-fable prerelease
 nuget FSharp.Core redirects:force, content:none
-nuget Fable.Core
+nuget Fable.Core prerelease
 nuget Fable.Elmish.React
 nuget Fable.Elmish.Browser
-nuget Fable.Elmish.Debugger
+nuget Fable.Elmish.HMR
 nuget Fable.React prerelease
-nuget Fulma 0.2.0-beta-004
+nuget Fulma prerelease
 nuget Fulma.Extensions prerelease
+nuget Thoth.Json prerelease
 nuget Fable.PowerPack
-nuget Fable.Import.Express
 nuget Fable.Import.Node
 
-clitool dotnet-fable
-
 group Build
-framework: net46
-
     source https://nuget.org/api/v2
-    nuget FSharp.Core  redirects:force, content:none
-    nuget FAKE
-    nuget Suave
+    framework: net46
+    nuget FAKE ~> 4
