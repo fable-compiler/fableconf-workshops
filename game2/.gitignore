@@ -1,0 +1,4 @@
+dist/main.js*
+node_modules/
+src/**/bin/
+src/**/obj/

@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "dependencies": {
+    "@babel/core": "^7.1.2",
+    "fable-loader": "^2.0.0",
+    "mainloop.js": "^1.0.4",
+    "matter-js": "^0.14.2",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.9"
+  }
+}
