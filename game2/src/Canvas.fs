@@ -22,7 +22,7 @@ type TimeUpdate<'Model> = 'Model -> float -> 'Model
 type View<'Model> = 'Model -> Context -> float -> unit
 
 type Canvas =
-    static member Path(ctx: Context, [<System.ParamArray>] points: _[]) =
+    static member Shape(ctx: Context, [<System.ParamArray>] points: _[]) =
         let mutable init = false
         ctx.beginPath()
         for (x, y) in points do

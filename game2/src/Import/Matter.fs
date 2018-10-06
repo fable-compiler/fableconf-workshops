@@ -317,6 +317,7 @@ type [<AllowNullLiteral>] Body =
     /// A `Bounds` object that defines the AABB region for the body.
     /// It is automatically calculated from the given convex hull (`vertices` array) in `Body.create` and constantly updated by `Body.update` during simulation.
     abstract bounds: Bounds with get, set
+    abstract circleRadius: float with get, set
     /// A `Number` that defines the density of the body, that is its mass per unit area.
     /// If you pass the density via `Body.create` the `mass` property is automatically calculated for you based on the size (area) of the object.
     /// This is generally preferable to simply setting mass and allows for more intuitive definition of materials (e.g. rock has a higher density than wood).
@@ -542,13 +543,9 @@ type [<AllowNullLiteral>] BodyStatic =
     /// <param name="correction"></param>
     abstract update: body: Body * deltaTime: float * timeScale: float * correction: float -> unit
 
-type [<AllowNullLiteral>] IBound =
-    abstract min: obj with get, set
-    abstract max: obj with get, set
-
-/// The `Matter.Bounds` module contains methods for creating and manipulating axis-aligned bounding boxes (AABB).
 type [<AllowNullLiteral>] Bounds =
-    interface end
+    abstract min: Vector with get, set
+    abstract max: Vector with get, set
 
 /// The `Matter.Bounds` module contains methods for creating and manipulating axis-aligned bounding boxes (AABB).
 type [<AllowNullLiteral>] BoundsStatic =
