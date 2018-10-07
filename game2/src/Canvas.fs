@@ -21,21 +21,46 @@ type Update<'Msg, 'Model> = 'Model -> 'Msg -> 'Model
 type View<'Model> = 'Model -> Context -> float -> unit
 
 type Canvas =
-    static member Shape(ctx: Context, [<System.ParamArray>] points: _[]) =
-        let mutable init = false
+    static member Shape(ctx: Context, strike, [<System.ParamArray>] points: _[]) =
+        ctx.save()
         ctx.beginPath()
-        for (x, y) in points do
-            if not init then
-                init <- true
-                ctx.moveTo(x, y)
-            else
-                ctx.lineTo(x, y)
+        let x, y = points.[0]
+        ctx.moveTo(x, y)
+        for i = 1 to points.Length - 1 do
+            let x, y = points.[i]
+            ctx.lineTo(x, y)
+        ctx.fillStyle <- strike
         ctx.fill()
+        ctx.restore()
 
-    static member Circle(this: Context, x, y, radius) =
-        this.beginPath()
-        this.arc(x, y, radius, 0., 2. * System.Math.PI, false)
-        this.fill()
+    static member Square(ctx: Context, strike, x, y, size) =
+        let half = size / 2.
+        ctx.save()
+        ctx.beginPath()
+        ctx.moveTo(x - half, y - half)
+        ctx.lineTo(x + half, y - half)
+        ctx.lineTo(x + half, y + half)
+        ctx.lineTo(x - half, y + half)
+        ctx.fillStyle <- strike
+        ctx.fill()
+        ctx.restore()
+
+    static member Line(ctx: Context, strike, x1, y1, x2, y2) =
+        ctx.save()
+        ctx.beginPath()
+        ctx.moveTo(x1, y1)
+        ctx.lineTo(x2, y2)
+        ctx.strokeStyle <- strike
+        ctx.stroke()
+        ctx.restore()
+
+    static member Circle(ctx: Context, strike, x, y, radius) =
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0., 2. * System.Math.PI, false)
+        ctx.fillStyle <- strike
+        ctx.fill()
+        ctx.restore()
 
     static member inline WithContext(ctx: Context, render: Context->unit) =
         ctx.save()
