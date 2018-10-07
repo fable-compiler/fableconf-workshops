@@ -17,8 +17,7 @@ type private MainLoop =
     abstract resetFrameDelta: unit -> float
 
 type Context = Browser.CanvasRenderingContext2D
-type MsgUpdate<'Msg, 'Model> = 'Model -> 'Msg list -> float -> float -> 'Model
-type TimeUpdate<'Model> = 'Model -> float -> 'Model
+type Update<'Msg, 'Model> = 'Model -> 'Msg -> 'Model
 type View<'Model> = 'Model -> Context -> float -> unit
 
 type Canvas =
@@ -44,8 +43,7 @@ type Canvas =
         ctx.restore()
 
     static member Start<'Msg,'Model>
-            (canvasId: string, init: 'Model,
-             msgUpdate: MsgUpdate<'Msg, 'Model>, timeUpdate: TimeUpdate<'Model>,
+            (canvasId: string, init: 'Model, tick: float->'Msg, update: Update<'Msg, 'Model>,
              view: View<'Model>, ?subscribe: Browser.HTMLCanvasElement->('Msg->unit)->'Model->unit) =
 
         let mainLoop: MainLoop = JsInterop.importAll "mainloop.js"
@@ -56,12 +54,13 @@ type Canvas =
         let dispatch msg = msgs.Add(msg)
         subscribe |> Option.iter (fun f -> f canvasEl dispatch model)
         mainLoop
-            .setBegin(fun timestamp delta ->
-                let msgs2 = Seq.toList msgs
+            .setBegin(fun _timestamp _delta ->
+                let msgs2 = Array.ofSeq msgs
                 msgs.Clear()
-                model <- msgUpdate model msgs2 timestamp delta)
+                model <- (model, msgs2) ||> Array.fold update
+            )
             .setUpdate(fun delta ->
-                model <- timeUpdate model delta)
+                model <- tick delta |> update model)
             .setDraw(fun interpolationPercentage ->
                 view model ctx interpolationPercentage)
             // TODO: Make the end function customizable

@@ -9,7 +9,7 @@ open Fable.Import
 module Literals =
     let [<Literal>] BALL_RADIUS = 80.
     let [<Literal>] PLAYER_SIZE = 40.
-    let [<Literal>] PLAYER_STEP = 0.5
+    let [<Literal>] PLAYER_STEP = 0.001
 
 open Literals
 
@@ -46,6 +46,7 @@ type Model =
 type Msg =
     | PlayerCollision of other: Matter.Body
     | Move of Dir
+    | Tick of delta: float
 
 [<RequireQualifiedAccess>]
 module Physics =
@@ -94,24 +95,21 @@ module Physics =
 let init (settings: Settings) =
     Physics.init settings
 
-let msgUpdate (model: Model) (msgs: Msg list) (_timestamp: float) (_delta: float) =
-    let model =
-        (model, msgs) ||> List.fold (fun model -> function
-            | PlayerCollision other ->
-                if other.label = "BALL" then
-                    printfn "PLAYER-BALL collision"
-                model
-            | Move dir -> { model with MoveDir = dir })
-    match model.MoveDir with
-    | Dir.None -> ()
-    | Dir.Left -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector -0.005 0.)
-    | Dir.Right -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector 0.005 0.)
-    model
-
-let timeUpdate (model: Model) delta =
-    Physics.update model delta
-    // Just return the same model because Matter mutates the values
-    model
+let update (model: Model) = function
+    | PlayerCollision other ->
+        if other.label = "BALL" then
+            printfn "PLAYER-BALL collision"
+        model
+    | Move dir ->
+        { model with MoveDir = dir }
+    | Tick delta ->
+        match model.MoveDir with
+        | Dir.None -> ()
+        | Dir.Left -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector -0.005 0.)
+        | Dir.Right -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector 0.005 0.)
+        Physics.update model delta
+        // Just return the same model because Matter mutates the values
+        model
 
 let renderCircle (ctx: Context) (ball: Matter.Body) =
     Canvas.Circle(ctx, ball.position.x, ball.position.y, ball.circleRadius)
@@ -162,4 +160,4 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     )
 
 // App
-Canvas.Start("canvas", init Settings.Default, msgUpdate, timeUpdate, view, subscribe)
+Canvas.Start("canvas", init Settings.Default, Tick, update, view, subscribe)
