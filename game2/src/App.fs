@@ -8,8 +8,10 @@ open Fable.Import
 
 module Literals =
     let [<Literal>] BALL_RADIUS = 80.
+    let [<Literal>] BALL_X_FORCE = 0.2
+    let [<Literal>] BALL_Y_FORCE = -0.2
     let [<Literal>] PLAYER_SIZE = 40.
-    let [<Literal>] PLAYER_STEP = 0.001
+    let [<Literal>] PLAYER_X_FORCE = 0.001
     let [<Literal>] HARPOON_TIP_SIZE = 16.
     let [<Literal>] HARPOON_STEP = 8.
     let [<Literal>] WORLD_WIDTH = 1000.
@@ -29,8 +31,14 @@ type Dir =
     | Right
     | None
 
+type State =
+    | Playing
+    | Win
+    | Lose
+
 type Model =
-    { Engine: Matter.Engine
+    { State: State
+      Engine: Matter.Engine
       Balls : Matter.Body[]
       Walls: Matter.Body[]
       Player: Matter.Body
@@ -55,14 +63,18 @@ module Physics =
     let inline squareWith x y size (opts: Matter.IChamferableBodyDefinition -> unit) =
         matter.Bodies.rectangle(x, y, size, size, %%opts)
 
-    let ball (x, y) radius (forceX, forceY) =
+    let ball (level: int) dir x y =
+        let level = float level
+        let radius = BALL_RADIUS / float level
+        let forceX =
+            (match dir with Dir.Left -> BALL_X_FORCE * -1. | _ -> BALL_X_FORCE) / level
         let ball = matter.Bodies.circle(x, y, radius, %%(fun o ->
-            o.label <- Some "BALL"
+            o.label <- Some (sprintf "BALL%.0f" level)
             o.restitution <- Some 1.
             o.friction <- Some 0.
             o.frictionAir <- Some 0.
         ))
-        matter.Body.applyForce(ball, vector x y, vector forceX forceY)
+        matter.Body.applyForce(ball, vector x y, vector forceX (BALL_Y_FORCE / level))
         ball
 
     let wall x y width height =
@@ -70,10 +82,13 @@ module Physics =
             o.isStatic <- Some true
         ))
 
+    let castRay bodies (x1, y1) (x2, y2) =
+        matter.Query.ray(bodies, vector x1 y1, vector x2 y2)
+
     let init () =
         let engine = matter.Engine.create()
         let player = square 0. 400. PLAYER_SIZE
-        let balls = [|ball (0., -200.) BALL_RADIUS (0.2, 0.)|]
+        let balls = [|ball 1 Dir.Right 0. -200.|]
         let walls = [|
             wall 0. -(WORLD_HEIGHT / 2.) WORLD_WIDTH 50. // floor
             wall (WORLD_WIDTH / 2.) 0. 50. 1050. // right wall
@@ -83,7 +98,8 @@ module Physics =
         matter.World.add(engine.world, !^[| yield player
                                             yield! balls
                                             yield! walls |]) |> ignore
-        { Engine = engine
+        { State = Playing
+          Engine = engine
           Balls = balls
           Walls = walls
           Player = player
@@ -113,10 +129,14 @@ let (|OneMaybe|_|) (target: Matter.Body option) (pair: Matter.IPair) =
         then Some pair.bodyA
         else None
 
+let (|Ball|_|) (body: Matter.Body) =
+    if body.label.StartsWith("BALL")
+    then int body.label.[4..] |> Some
+    else None
+
 let update (model: Model) = function
-    | Collision (OneIs model.Player other) when other.label = "BALL" ->
-        printfn "PLAYER-BALL collision"
-        model
+    | Collision (OneIs model.Player (Ball _)) ->
+        { model with State = Lose }
     | Collision _ -> model
     | Fire ->
         match model.Harpoon with
@@ -126,6 +146,9 @@ let update (model: Model) = function
             { model with Harpoon = Some harpoon }
     | Move dir ->
         { model with MoveDir = dir }
+    // TODO: Pass object from Canvas manager to stop/resume animation instead of just ignoring ticks
+    | Tick _ when model.State <> Playing ->
+        model
     | Tick delta ->
         // Move player
         match model.MoveDir with
@@ -138,9 +161,32 @@ let update (model: Model) = function
         match model.Harpoon with
         | None -> model
         | Some (x, y) ->
-            if y <= -500. // TODO: Make it a literal or take the value from somewhere
-            then { model with Harpoon = None }
-            else { model with Harpoon = Some(x, y - HARPOON_STEP) }
+            // Check if harpoon string touches any ball
+            let collisions = Physics.castRay model.Balls (x, y) (x, WORLD_HEIGHT / 2.)
+            let balls, removeHarpoon =
+                if collisions.Length = 0
+                then model.Balls, false
+                else
+                    (model.Balls, collisions) ||> Array.fold (fun balls col ->
+                        match col.bodyA with
+                        | Ball level as ball ->
+                            matter.Composite.remove(model.Engine.world, !^ball) |> ignore
+                            let balls = balls |> Array.filter (fun b -> b <> ball)
+                            if level < 4 then
+                                let level = level * 2
+                                let balls2 = [|
+                                    Physics.ball level Dir.Right ball.position.x ball.position.y
+                                    Physics.ball level Dir.Left ball.position.x ball.position.y
+                                |]
+                                matter.World.add(model.Engine.world, !^balls2) |> ignore
+                                Array.append balls balls2
+                            else balls
+                        | _ -> balls), true
+            if balls.Length = 0
+            then { model with State = Win }
+            elif removeHarpoon || y <= -(WORLD_HEIGHT / 2.)
+            then { model with Balls = balls; Harpoon = None }
+            else { model with Balls = balls; Harpoon = Some(x, y - HARPOON_STEP) }
 
 let renderCircle (ctx: Context) style (ball: Matter.Body) =
     Canvas.Circle(ctx, style, ball.position.x, ball.position.y, ball.circleRadius)
@@ -164,6 +210,11 @@ let view (model : Model) (ctx: Context) _interpolationPercentage =
     // Apply zoom
     // ctx.lineWidth <- 2. / zoom
     ctx.scale(zoom, zoom)
+    // Draw state
+    match model.State with
+    | Playing -> ()
+    | Win -> Canvas.Text(ctx, !^"white", "YOU WIN", 0., -(WORLD_HEIGHT / 3.))
+    | Lose -> Canvas.Text(ctx, !^"white", "GAME OVER", 0., -(WORLD_HEIGHT / 3.))
     // Draw player
     renderShape ctx !^"yellow" model.Player
     // Draw harpoon
@@ -176,15 +227,14 @@ let view (model : Model) (ctx: Context) _interpolationPercentage =
     for ball in model.Balls do
         renderCircle ctx !^"red" ball
     // Draw walls
-    // #if DEBUG
     // for wall in model.Walls do
     //     renderShape ctx !^"white" wall
-    // #endif
     ctx.restore()
 
 let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.width <- CANVAS_WIDTH
     canvas.height <- CANVAS_HEIGHT
+    canvas.style.background <- "black"
 
     Browser.window.addEventListener_keydown(fun ev ->
         match ev.key.ToLower() with

@@ -21,7 +21,15 @@ type Update<'Msg, 'Model> = 'Model -> 'Msg -> 'Model
 type View<'Model> = 'Model -> Context -> float -> unit
 
 type Canvas =
-    static member Shape(ctx: Context, strike, [<System.ParamArray>] points: _[]) =
+    static member Text(ctx: Context, style, text, x, y, ?font) =
+        ctx.save()
+        ctx.textAlign <- "center"
+        ctx.font <- defaultArg font "48px Arial"
+        ctx.fillStyle <- style
+        ctx.fillText(text, x, y)
+        ctx.restore()
+
+    static member Shape(ctx: Context, style, [<System.ParamArray>] points: _[]) =
         ctx.save()
         ctx.beginPath()
         let x, y = points.[0]
@@ -29,11 +37,11 @@ type Canvas =
         for i = 1 to points.Length - 1 do
             let x, y = points.[i]
             ctx.lineTo(x, y)
-        ctx.fillStyle <- strike
+        ctx.fillStyle <- style
         ctx.fill()
         ctx.restore()
 
-    static member Square(ctx: Context, strike, x, y, size) =
+    static member Square(ctx: Context, style, x, y, size) =
         let half = size / 2.
         ctx.save()
         ctx.beginPath()
@@ -41,24 +49,24 @@ type Canvas =
         ctx.lineTo(x + half, y - half)
         ctx.lineTo(x + half, y + half)
         ctx.lineTo(x - half, y + half)
-        ctx.fillStyle <- strike
+        ctx.fillStyle <- style
         ctx.fill()
         ctx.restore()
 
-    static member Line(ctx: Context, strike, x1, y1, x2, y2) =
+    static member Line(ctx: Context, style, x1, y1, x2, y2) =
         ctx.save()
         ctx.beginPath()
         ctx.moveTo(x1, y1)
         ctx.lineTo(x2, y2)
-        ctx.strokeStyle <- strike
+        ctx.strokeStyle <- style
         ctx.stroke()
         ctx.restore()
 
-    static member Circle(ctx: Context, strike, x, y, radius) =
+    static member Circle(ctx: Context, style, x, y, radius) =
         ctx.save()
         ctx.beginPath()
         ctx.arc(x, y, radius, 0., 2. * System.Math.PI, false)
-        ctx.fillStyle <- strike
+        ctx.fillStyle <- style
         ctx.fill()
         ctx.restore()
 

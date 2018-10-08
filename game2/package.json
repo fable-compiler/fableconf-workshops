@@ -1,5 +1,9 @@
 {
   "private": true,
+  "scripts": {
+    "postinstall": "dotnet restore src",
+    "start": "cd src && dotnet fable webpack-dev-server"
+  },
   "dependencies": {
     "@babel/core": "^7.1.2",
     "fable-loader": "^2.0.0",

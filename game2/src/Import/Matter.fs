@@ -1080,6 +1080,10 @@ type [<AllowNullLiteral>] IPair =
 type [<AllowNullLiteral>] Query =
     interface end
 
+type [<AllowNullLiteral>] ICollision =
+    abstract bodyA: Body with get, set
+    abstract bodyB: Body with get, set
+
 /// The `Matter.Query` module contains methods for performing collision queries.
 ///
 /// See the included usage [examples](https://github.com/liabru/matter-js/tree/master/examples).
@@ -1090,7 +1094,7 @@ type [<AllowNullLiteral>] QueryStatic =
     /// <param name="startPoint"></param>
     /// <param name="endPoint"></param>
     /// <param name="rayWidth"></param>
-    abstract ray: bodies: array<Body> * startPoint: Vector * endPoint: Vector * ?rayWidth: float -> array<obj option>
+    abstract ray: bodies: array<Body> * startPoint: Vector * endPoint: Vector * ?rayWidth: float -> array<ICollision>
     /// <summary>Returns all bodies whose bounds are inside (or outside if set) the given set of bounds, from the given set of bodies.</summary>
     /// <param name="bodies"></param>
     /// <param name="bounds"></param>
