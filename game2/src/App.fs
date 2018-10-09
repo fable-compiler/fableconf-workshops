@@ -161,6 +161,17 @@ let (|Ball|_|) (body: Matter.Body) =
     then int body.label.[4..] |> Some
     else None
 
+let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
+    let balls = balls |> Array.filter (fun b -> b <> ball)
+    if level < 4 then
+        let level = level * 2
+        let first =
+            Physics.ball level Dir.Right ball.position.x ball.position.y
+        let second =
+            Physics.ball level Dir.Left ball.position.x ball.position.y
+        [| first; second |]
+    else [||]
+
 let update (model: Model) = function
     | Collision (OneIs model.Player (Ball _)) ->
         { model with State = Lose }
@@ -211,17 +222,20 @@ let update (model: Model) = function
                     (model.Balls, collisions) ||> Array.fold (fun balls col ->
                         match col.bodyA with
                         | Ball level as ball ->
-                            matter.Composite.remove(model.Engine.world, !^ball) |> ignore
-                            let balls = balls |> Array.filter (fun b -> b <> ball)
-                            if level < 4 then
-                                let level = level * 2
-                                let balls2 = [|
-                                    Physics.ball level Dir.Right ball.position.x ball.position.y
-                                    Physics.ball level Dir.Left ball.position.x ball.position.y
-                                |]
-                                matter.World.add(model.Engine.world, !^balls2) |> ignore
-                                Array.append balls balls2
-                            else balls
+                            let splitBalls =
+                                handleBallShot level ball balls
+
+                            let newBalls =
+                                balls
+                                |> Array.filter ((<>) ball)
+                                |> Array.append splitBalls
+
+                            matter.Composite.remove(
+                                model.Engine.world, !^ball) |> ignore
+                            matter.World.add(
+                                model.Engine.world, !^splitBalls) |> ignore
+
+                            newBalls
                         | _ -> balls), true
             if balls.Length = 0
             then { model with State = Win }
