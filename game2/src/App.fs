@@ -11,7 +11,7 @@ module Literals =
     let [<Literal>] BALL_X_FORCE = 0.2
     let [<Literal>] BALL_Y_FORCE = -0.2
     let [<Literal>] PLAYER_SIZE = 40.
-    let [<Literal>] PLAYER_X_FORCE = 0.001
+    let [<Literal>] PLAYER_X_FORCE = 0.005
     let [<Literal>] HARPOON_TIP_SIZE = 16.
     let [<Literal>] HARPOON_STEP = 8.
     let [<Literal>] WORLD_WIDTH = 1000.
@@ -153,8 +153,8 @@ let update (model: Model) = function
         // Move player
         match model.MoveDir with
         | Dir.None -> ()
-        | Dir.Left -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector -0.005 0.)
-        | Dir.Right -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector 0.005 0.)
+        | Dir.Left -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector -PLAYER_X_FORCE 0.)
+        | Dir.Right -> matter.Body.applyForce(model.Player, model.Player.position, Physics.vector PLAYER_X_FORCE 0.)
         // Update physics: Mutates model
         Physics.update model delta
         // Move or destroy harpoon
