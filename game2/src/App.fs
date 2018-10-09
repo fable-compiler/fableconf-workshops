@@ -19,6 +19,11 @@ module Literals =
     let [<Literal>] CANVAS_WIDTH = 600.
     let [<Literal>] CANVAS_HEIGHT = 600.
 
+    let WORLD_BOUND_UPPER = - (WORLD_HEIGHT / 2.)
+    let WORLD_BOUND_LOWER = WORLD_HEIGHT / 2.
+    let WORLD_BOUND_LEFT = - (WORLD_WIDTH / 2.)
+    let WORLD_BOUND_RIGHT = WORLD_WIDTH / 2.
+
 open Literals
 
 let matter: Matter.IExports = importAll "matter-js"
@@ -36,13 +41,35 @@ type State =
     | Win
     | Lose
 
+type Point =
+    { X : float
+      Y : float }
+
+module Point =
+    let fromXY x y =
+        { X = x
+          Y = y }
+
+    let toTuple (p : Point) = p.X, p.Y
+
+    let move (p : Point) (vector : Point) =
+        { X = p.X + vector.X
+          Y = p.Y + vector.Y }
+
+    let moveVert (y : float) (p : Point) =
+        move p { X = 0.; Y = y }
+
+type Section =
+    { Start : Point
+      End : Point }
+
 type Model =
     { State: State
       Engine: Matter.Engine
       Balls : Matter.Body[]
       Walls: Matter.Body[]
       Player: Matter.Body
-      Harpoon: (float * float) option
+      Harpoon: Section option
       MoveDir: Dir }
 
 type Msg =
@@ -90,10 +117,10 @@ module Physics =
         let player = square 0. 400. PLAYER_SIZE
         let balls = [|ball 1 Dir.Right 0. -200.|]
         let walls = [|
-            wall 0. -(WORLD_HEIGHT / 2.) WORLD_WIDTH 50. // floor
-            wall (WORLD_WIDTH / 2.) 0. 50. 1050. // right wall
-            wall 0. (WORLD_HEIGHT / 2.) 1000. 50. // ground
-            wall -(WORLD_WIDTH / 2.) 0. 50. 1050. // left wall
+            wall 0. WORLD_BOUND_UPPER WORLD_WIDTH 50. // ceiling
+            wall WORLD_BOUND_RIGHT 0. 50. 1050. // right wall
+            wall 0. WORLD_BOUND_LOWER 1000. 50. // ground
+            wall WORLD_BOUND_LEFT 0. 50. 1050. // left wall
         |]
         matter.World.add(engine.world, !^[| yield player
                                             yield! balls
@@ -142,7 +169,17 @@ let update (model: Model) = function
         match model.Harpoon with
         | Some _ -> model // Do nothing
         | None ->
-            let harpoon = (model.Player.position.x, model.Player.position.y - PLAYER_SIZE)
+            let start =
+                Point.fromXY
+                    model.Player.position.x
+                    WORLD_BOUND_LOWER
+            let _end =
+                Point.fromXY
+                    model.Player.position.x
+                    (model.Player.position.y - PLAYER_SIZE)
+            let harpoon =
+                { Start = start
+                  End = _end }
             { model with Harpoon = Some harpoon }
     | Move dir ->
         { model with MoveDir = dir }
@@ -160,9 +197,13 @@ let update (model: Model) = function
         // Move or destroy harpoon
         match model.Harpoon with
         | None -> model
-        | Some (x, y) ->
+        | Some harpoon ->
             // Check if harpoon string touches any ball
-            let collisions = Physics.castRay model.Balls (x, y) (x, WORLD_HEIGHT / 2.)
+            let collisions =
+                Physics.castRay
+                    model.Balls
+                    (Point.toTuple harpoon.Start)
+                    (Point.toTuple harpoon.End)
             let balls, removeHarpoon =
                 if collisions.Length = 0
                 then model.Balls, false
@@ -184,9 +225,14 @@ let update (model: Model) = function
                         | _ -> balls), true
             if balls.Length = 0
             then { model with State = Win }
-            elif removeHarpoon || y <= -(WORLD_HEIGHT / 2.)
+            elif removeHarpoon || harpoon.End.Y <= WORLD_BOUND_UPPER
             then { model with Balls = balls; Harpoon = None }
-            else { model with Balls = balls; Harpoon = Some(x, y - HARPOON_STEP) }
+            else
+                let harpoonEnd =
+                    harpoon.End |> Point.moveVert (- HARPOON_STEP)
+                { model with
+                    Balls = balls
+                    Harpoon = Some { harpoon with End = harpoonEnd } }
 
 let renderCircle (ctx: Context) style (ball: Matter.Body) =
     Canvas.Circle(ctx, style, ball.position.x, ball.position.y, ball.circleRadius)
@@ -220,9 +266,9 @@ let view (model : Model) (ctx: Context) _interpolationPercentage =
     // Draw harpoon
     match model.Harpoon with
     | None -> ()
-    | Some (x, y) ->
-        renderSquare ctx !^"yellow" HARPOON_TIP_SIZE (x, y)
-        renderLine ctx !^"white" (x, y) (x, WORLD_HEIGHT / 2.)
+    | Some harpoon ->
+        renderSquare ctx !^"yellow" HARPOON_TIP_SIZE (Point.toTuple harpoon.End)
+        renderLine ctx !^"white" (Point.toTuple harpoon.Start) (Point.toTuple harpoon.End)
     // Draw balls
     for ball in model.Balls do
         renderCircle ctx !^"red" ball
