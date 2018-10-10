@@ -7,9 +7,9 @@ open Fable.Core.JsInterop
 open Fable.Import
 
 module Literals =
-    let [<Literal>] BALL_RADIUS = 80.
-    let [<Literal>] BALL_X_FORCE = 0.2
-    let [<Literal>] BALL_Y_FORCE = -0.2
+    let [<Literal>] BALL_RADIUS = 120.
+    let [<Literal>] BALL_X_FORCE = 1.
+    let [<Literal>] BALL_Y_FORCE = -1.
     let [<Literal>] PLAYER_SIZE = 40.
     let [<Literal>] PLAYER_X_FORCE = 0.005
     let [<Literal>] HARPOON_TIP_SIZE = 16.
@@ -23,6 +23,8 @@ module Literals =
     let WORLD_BOUND_LOWER = WORLD_HEIGHT / 2.
     let WORLD_BOUND_LEFT = - (WORLD_WIDTH / 2.)
     let WORLD_BOUND_RIGHT = WORLD_WIDTH / 2.
+
+    let TEXT_POSITION = -(WORLD_HEIGHT / 3.)
 
 open Literals
 
@@ -38,8 +40,7 @@ type Dir =
 
 type State =
     | Playing
-    | Win
-    | Lose
+    | End
 
 type Point =
     { X : float
@@ -65,6 +66,7 @@ type Section =
 
 type Model =
     { State: State
+      Score : int
       Engine: Matter.Engine
       Balls : Matter.Body[]
       Walls: Matter.Body[]
@@ -92,7 +94,7 @@ module Physics =
 
     let ball (level: int) dir x y =
         let level = float level
-        let radius = BALL_RADIUS / float level
+        let radius = BALL_RADIUS / (float level |> sqrt)
         let forceX =
             (match dir with Dir.Left -> BALL_X_FORCE * -1. | _ -> BALL_X_FORCE) / level
         let ball = matter.Bodies.circle(x, y, radius, %%(fun o ->
@@ -126,6 +128,7 @@ module Physics =
                                             yield! balls
                                             yield! walls |]) |> ignore
         { State = Playing
+          Score = 0
           Engine = engine
           Balls = balls
           Walls = walls
@@ -162,19 +165,16 @@ let (|Ball|_|) (body: Matter.Body) =
     else None
 
 let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
-    let balls = balls |> Array.filter (fun b -> b <> ball)
-    if level < 4 then
-        let level = level * 2
-        let first =
-            Physics.ball level Dir.Right ball.position.x ball.position.y
-        let second =
-            Physics.ball level Dir.Left ball.position.x ball.position.y
-        [| first; second |]
-    else [||]
+    let level = level * 2
+    let first =
+        Physics.ball level Dir.Right ball.position.x ball.position.y
+    let second =
+        Physics.ball level Dir.Left ball.position.x ball.position.y
+    [| first; second |]
 
 let update (model: Model) = function
     | Collision (OneIs model.Player (Ball _)) ->
-        { model with State = Lose }
+        { model with State = End }
     | Collision _ -> model
     | Fire ->
         match model.Harpoon with
@@ -195,7 +195,7 @@ let update (model: Model) = function
     | Move dir ->
         { model with MoveDir = dir }
     // TODO: Pass object from Canvas manager to stop/resume animation instead of just ignoring ticks
-    | Tick _ when model.State <> Playing ->
+    | Tick _ when ((function Playing _ -> false | _ -> true) model.State) ->
         model
     | Tick delta ->
         // Move player
@@ -215,11 +215,11 @@ let update (model: Model) = function
                     model.Balls
                     (Point.toTuple harpoon.Start)
                     (Point.toTuple harpoon.End)
-            let balls, removeHarpoon =
+            let (balls, score), removeHarpoon =
                 if collisions.Length = 0
-                then model.Balls, false
+                then (model.Balls, model.Score), false
                 else
-                    (model.Balls, collisions) ||> Array.fold (fun balls col ->
+                    ((model.Balls, model.Score), collisions) ||> Array.fold (fun (balls, score) col ->
                         match col.bodyA with
                         | Ball level as ball ->
                             let splitBalls =
@@ -235,18 +235,19 @@ let update (model: Model) = function
                             matter.World.add(
                                 model.Engine.world, !^splitBalls) |> ignore
 
-                            newBalls
-                        | _ -> balls), true
+                            (newBalls, score + splitBalls.Length / 2)
+                        | _ -> (balls, score)), true
             if balls.Length = 0
-            then { model with State = Win }
+            then failwith "impossible"
             elif removeHarpoon || harpoon.End.Y <= WORLD_BOUND_UPPER
-            then { model with Balls = balls; Harpoon = None }
+            then { model with Balls = balls; Harpoon = None; Score = score }
             else
                 let harpoonEnd =
                     harpoon.End |> Point.moveVert (- HARPOON_STEP)
                 { model with
                     Balls = balls
-                    Harpoon = Some { harpoon with End = harpoonEnd } }
+                    Harpoon = Some { harpoon with End = harpoonEnd }
+                    Score = score }
 
 let renderCircle (ctx: Context) style (ball: Matter.Body) =
     Canvas.Circle(ctx, style, ball.position.x, ball.position.y, ball.circleRadius)
@@ -272,9 +273,10 @@ let view (model : Model) (ctx: Context) _interpolationPercentage =
     ctx.scale(zoom, zoom)
     // Draw state
     match model.State with
-    | Playing -> ()
-    | Win -> Canvas.Text(ctx, !^"white", "YOU WIN", 0., -(WORLD_HEIGHT / 3.))
-    | Lose -> Canvas.Text(ctx, !^"white", "GAME OVER", 0., -(WORLD_HEIGHT / 3.))
+    | Playing ->
+        Canvas.Text(ctx, !^"white", sprintf "SCORE: %d" model.Score, 0., TEXT_POSITION)
+    | End ->
+        Canvas.Text(ctx, !^"white", sprintf "GAME OVER, SCORE: %d" model.Score, 0., TEXT_POSITION)
     // Draw player
     renderShape ctx !^"yellow" model.Player
     // Draw harpoon
