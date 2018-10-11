@@ -1,6 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Prevent dotnet template engine to parse this file -->
-    <PropertyGroup>
+  <!--/-:cnd:noEmit-->
+  <PropertyGroup>
     <!-- make MSBuild track this file for incremental builds. -->
     <!-- ref https://blogs.msdn.microsoft.com/msbuild/2005/09/26/how-to-ensure-changes-to-a-custom-target-file-prompt-a-rebuild/ -->
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -71,6 +72,9 @@
       <PaketRestoreRequired Condition=" '$(PaketRestoreLockFileHash)' == '' ">true</PaketRestoreRequired>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(PaketPropsVersion)' != '5.174.2' ">
+      <PaketRestoreRequired>true</PaketRestoreRequired>
+    </PropertyGroup>
 
     <!-- Do a global restore if required -->
     <Exec Command='$(PaketBootStrapperCommand)' Condition="Exists('$(PaketBootStrapperExePath)') AND !(Exists('$(PaketExePath)'))" ContinueOnError="false" />
@@ -92,7 +96,7 @@
       <PaketOriginalReferencesFilePath Condition=" !Exists('$(PaketOriginalReferencesFilePath)')">$(MSBuildProjectDirectory)\$(MSBuildProjectName).paket.references</PaketOriginalReferencesFilePath>
       <!-- paket.references -->
       <PaketOriginalReferencesFilePath Condition=" !Exists('$(PaketOriginalReferencesFilePath)')">$(MSBuildProjectDirectory)\paket.references</PaketOriginalReferencesFilePath>
-      
+
       <DoAllResolvedFilesExist>false</DoAllResolvedFilesExist>
       <DoAllResolvedFilesExist Condition="Exists(%(PaketResolvedFilePaths.Identity))">true</DoAllResolvedFilesExist>
       <PaketRestoreRequired>true</PaketRestoreRequired>
@@ -131,11 +135,11 @@
     <Error Condition=" '$(DoAllResolvedFilesExist)' != 'true' AND '$(ResolveNuGetPackages)' != 'False' " Text="One Paket file '@(PaketResolvedFilePaths)' is missing while restoring $(MSBuildProjectFile). Please delete 'paket-files/paket.restore.cached' and call 'paket restore'." />
 
     <!-- Step 4 forward all msbuild properties (PackageReference, DotNetCliToolReference) to msbuild -->
-    <ReadLinesFromFile Condition="'@(PaketResolvedFilePaths)' != ''" File="%(PaketResolvedFilePaths.Identity)" ><!--Condition="Exists('%(PaketResolvedFilePaths.Identity)')"-->
+    <ReadLinesFromFile Condition="($(DesignTimeBuild) != true OR '$(PaketPropsLoaded)' != 'true') AND '@(PaketResolvedFilePaths)' != ''" File="%(PaketResolvedFilePaths.Identity)" >
       <Output TaskParameter="Lines" ItemName="PaketReferencesFileLines"/>
     </ReadLinesFromFile>
 
-    <ItemGroup Condition=" '@(PaketReferencesFileLines)' != '' " >
+    <ItemGroup Condition="($(DesignTimeBuild) != true OR '$(PaketPropsLoaded)' != 'true') AND '@(PaketReferencesFileLines)' != '' " >
       <PaketReferencesFileLinesInfo Include="@(PaketReferencesFileLines)" >
         <PackageName>$([System.String]::Copy('%(PaketReferencesFileLines.Identity)').Split(',')[0])</PackageName>
         <PackageVersion>$([System.String]::Copy('%(PaketReferencesFileLines.Identity)').Split(',')[1])</PackageVersion>
@@ -291,4 +295,5 @@
               NuspecBasePath="$(NuspecBasePath)"
               NuspecProperties="$(NuspecProperties)"/>
   </Target>
-  </Project>
+  <!--/+:cnd:noEmit-->
+</Project>
