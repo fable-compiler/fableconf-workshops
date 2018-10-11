@@ -3,6 +3,8 @@
     "dependencies": {
         "@babel/polyfill": "^7.0.0",
         "@babel/runtime": "^7.0.0",
+        "mainloop.js": "^1.0.4",
+        "matter-js": "^0.14.2",
         "react": "16.5.2",
         "react-bootstrap": "0.32.4",
         "react-dom": "16.5.2",
