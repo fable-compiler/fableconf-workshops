@@ -122,27 +122,52 @@ type Section =
     { Start : Point
       End : Point }
 
+type GameState =
+    | Playing
+    | GameOver
+
 type Model =
     { Engine : Matter.Engine
       Player : Matter.Body
       Balls : Matter.Body[]
       MoveDir : Dir option
-      Harpoon : Section option }
+      Harpoon : Section option
+      State : GameState }
 
 type Msg =
     | Tick of delta : float
     | Move of Dir option
     | Fire
+    | Collision of Matter.IPair
 
 let init () =
     let engine, player, balls = Physics.init ()
     { Engine = engine
       Player = player
       Balls = balls
+      State = Playing
       MoveDir = None
       Harpoon = None }
 
+let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
+    if pair.bodyA = target
+    then Some pair.bodyB
+    elif pair.bodyB = target
+    then Some pair.bodyA
+    else None
+
+let (|Ball|_|) (body: Matter.Body) =
+    if body.label.StartsWith("BALL")
+    then int body.label.[4..] |> Some
+    else None
+
 let update (model: Model) = function
+    | Collision (OneIs model.Player (Ball _)) ->
+        { model with State = GameOver }
+    | Collision _ ->
+        model
+    | Tick _ when model.State = GameOver ->
+        model
     | Tick delta ->
         // Move player
         match model.MoveDir with
@@ -249,6 +274,10 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
         | "arrowleft" | "arrowright" -> Move None |> dispatch
         | " " -> dispatch Fire
         | _ -> ())
+
+    matter.Events.on_collisionStart(model.Engine, fun ev ->
+        for pair in ev.pairs do
+            Collision pair |> dispatch)
 
 Canvas.Start("canvas", init(), Tick, update, view, subscribe)
 
