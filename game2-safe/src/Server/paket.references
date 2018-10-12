@@ -3,4 +3,4 @@ group Server
     Saturn
     Microsoft.ApplicationInsights.AspNetCore
     WindowsAzure.Storage
-    Fable.JsonConverter
+    Fable.Remoting.Giraffe

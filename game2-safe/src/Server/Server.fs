@@ -8,7 +8,8 @@ open Giraffe
 open Saturn
 open Shared
 
-open Giraffe.Serialization
+open Fable.Remoting.Server
+open Fable.Remoting.Giraffe
 open Microsoft.WindowsAzure.Storage
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
@@ -18,18 +19,15 @@ let port = 8085us
 
 let getInitCounter() : Task<Counter> = task { return 42 }
 
-let webApp = router {
-    get "/api/init" (fun next ctx ->
-        task {
-            let! counter = getInitCounter()
-            return! Successful.OK counter next ctx
-        })
+let counterApi = {
+    initialCounter = getInitCounter >> Async.AwaitTask
 }
 
-let configureSerialization (services:IServiceCollection) =
-    let fableJsonSettings = Newtonsoft.Json.JsonSerializerSettings()
-    fableJsonSettings.Converters.Add(Fable.JsonConverter())
-    services.AddSingleton<IJsonSerializer>(NewtonsoftJsonSerializer fableJsonSettings)
+let webApp =
+    Remoting.createApi()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.fromValue counterApi
+    |> Remoting.buildHttpHandler
 
 let configureAzure (services:IServiceCollection) =
     tryGetEnv "APPINSIGHTS_INSTRUMENTATIONKEY"
@@ -41,7 +39,6 @@ let app = application {
     use_router webApp
     memory_cache
     use_static publicPath
-    service_config configureSerialization
     service_config configureAzure
     use_gzip
 }

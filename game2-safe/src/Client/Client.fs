@@ -10,6 +10,17 @@ open Canvas
 
 open Shared
 
+module Server =
+
+    open Shared
+    open Fable.Remoting.Client
+
+    /// A proxy you can use to talk to server directly
+    let api : ICounterApi =
+      Remoting.createApi()
+      |> Remoting.withRouteBuilder Route.builder
+      |> Remoting.buildProxy<ICounterApi>
+
 module Literals =
     let [<Literal>] BALL_RADIUS = 120.
     let [<Literal>] BALL_X_FORCE = 1.

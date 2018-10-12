@@ -1,4 +1,5 @@
 group Client
     Fable.Core
-    Fable.Import.Browser
     dotnet-fable
+    Fable.Import.Browser
+    Fable.Remoting.Client
