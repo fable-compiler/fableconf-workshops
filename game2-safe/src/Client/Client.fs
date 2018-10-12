@@ -84,20 +84,46 @@ type Dir =
     | Left
     | Right
 
+
+type Point =
+    { X : float
+      Y : float }
+
+module Point =
+    let fromXY x y =
+        { X = x
+          Y = y }
+
+    let toTuple (p : Point) = p.X, p.Y
+
+    let move (p : Point) (vector : Point) =
+        { X = p.X + vector.X
+          Y = p.Y + vector.Y }
+
+    let moveVert (y : float) (p : Point) =
+        move p { X = 0.; Y = y }
+
+type Section =
+    { Start : Point
+      End : Point }
+
 type Model =
     { Engine : Matter.Engine
       Player : Matter.Body
-      MoveDir : Dir option }
+      MoveDir : Dir option
+      Harpoon : Section option }
 
 type Msg =
     | Tick of delta : float
     | Move of Dir option
+    | Fire
 
 let init () =
     let engine, player = Physics.init ()
     { Engine = engine
       Player = player
-      MoveDir = None }
+      MoveDir = None
+      Harpoon = None }
 
 let update (model: Model) = function
     | Tick delta ->
@@ -114,14 +140,49 @@ let update (model: Model) = function
                 model.Player,
                 model.Player.position,
                 Physics.vector PLAYER_X_FORCE 0.)
+
+        let newHarpoon =
+            match model.Harpoon with
+            | None -> None
+            | Some harpoon ->
+                if harpoon.End.Y <= WORLD_BOUND_UPPER then
+                    None
+                else
+                    let harpoonEnd =
+                        harpoon.End |> Point.moveVert (- HARPOON_STEP)
+                    Some { harpoon with End = harpoonEnd }
+
         Physics.update model.Engine delta
-        model
+        { model with
+            Harpoon = newHarpoon }
     | Move dir ->
         { model with MoveDir = dir }
+    | Fire ->
+        match model.Harpoon with
+        | Some _ -> model // Do nothing
+        | None ->
+            let start =
+                Point.fromXY
+                    model.Player.position.x
+                    WORLD_BOUND_LOWER
+            let _end =
+                Point.fromXY
+                    model.Player.position.x
+                    (model.Player.position.y - PLAYER_SIZE)
+            let harpoon =
+                { Start = start
+                  End = _end }
+            { model with Harpoon = Some harpoon }
 
 let renderShape (ctx: Context) style (shape: Matter.Body) =
     let vertices = shape.vertices |> Array.map (fun v -> v.x, v.y)
     Canvas.Shape(ctx, style, vertices)
+
+let renderSquare (ctx: Context) style size (x, y) =
+    Canvas.Square(ctx, style, x, y, size)
+
+let renderLine (ctx: Context) style (x1, y1) (x2, y2) =
+    Canvas.Line(ctx, style, x1, y1, x2, y2)
 
 let view (model : Model) (ctx: Context) _ =
     let zoom =
@@ -135,7 +196,15 @@ let view (model : Model) (ctx: Context) _ =
     // Apply zoom
     ctx.scale(zoom, zoom)
 
+    // Draw player
     renderShape ctx !^"yellow" model.Player
+
+    // Draw harpoon
+    match model.Harpoon with
+    | None -> ()
+    | Some harpoon ->
+        renderSquare ctx !^"yellow" HARPOON_TIP_SIZE (Point.toTuple harpoon.End)
+        renderLine ctx !^"white" (Point.toTuple harpoon.Start) (Point.toTuple harpoon.End)
 
     ctx.restore()
 
@@ -154,7 +223,7 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     Browser.window.addEventListener_keyup(fun ev ->
         match ev.key.ToLower() with
         | "arrowleft" | "arrowright" -> Move None |> dispatch
-        | " " -> () // dispatch Fire
+        | " " -> dispatch Fire
         | _ -> ())
 
 Canvas.Start("canvas", init(), Tick, update, view, subscribe)
