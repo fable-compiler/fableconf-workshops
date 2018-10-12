@@ -49,6 +49,10 @@ let inline (~%%) x = jsOptions x
 
 [<RequireQualifiedAccess>]
 module Physics =
+    let inline vector x y: Matter.Vector = %%(fun o ->
+        o.x <- x
+        o.y <- y)
+
     let wall x y width height =
         matter.Bodies.rectangle(x, y, width, height, %%(fun o ->
             o.isStatic <- Some true
@@ -75,22 +79,45 @@ module Physics =
     let update (engine: Matter.Engine) (delta: float): unit =
         matter.Engine.update(engine, delta) |> ignore
 
+[<RequireQualifiedAccess>]
+type Dir =
+    | Left
+    | Right
+
 type Model =
     { Engine : Matter.Engine
-      Player : Matter.Body }
+      Player : Matter.Body
+      MoveDir : Dir option }
 
 type Msg =
     | Tick of delta : float
+    | Move of Dir option
 
 let init () =
     let engine, player = Physics.init ()
     { Engine = engine
-      Player = player }
+      Player = player
+      MoveDir = None }
 
 let update (model: Model) = function
     | Tick delta ->
+        // Move player
+        match model.MoveDir with
+        | None -> ()
+        | Some Dir.Left ->
+            matter.Body.applyForce(
+                model.Player,
+                model.Player.position,
+                Physics.vector -PLAYER_X_FORCE 0.)
+        | Some Dir.Right ->
+            matter.Body.applyForce(
+                model.Player,
+                model.Player.position,
+                Physics.vector PLAYER_X_FORCE 0.)
         Physics.update model.Engine delta
         model
+    | Move dir ->
+        { model with MoveDir = dir }
 
 let renderShape (ctx: Context) style (shape: Matter.Body) =
     let vertices = shape.vertices |> Array.map (fun v -> v.x, v.y)
@@ -116,6 +143,19 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.width <- CANVAS_WIDTH
     canvas.height <- CANVAS_HEIGHT
     canvas.style.background <- "black"
+
+    Browser.window.addEventListener_keydown(fun ev ->
+        match ev.key.ToLower() with
+        | "arrowleft" -> Move (Some Dir.Left) |> dispatch
+        | "arrowright" -> Move (Some Dir.Right) |> dispatch
+        | " " -> ev.preventDefault ()
+        | _ -> ())
+
+    Browser.window.addEventListener_keyup(fun ev ->
+        match ev.key.ToLower() with
+        | "arrowleft" | "arrowright" -> Move None |> dispatch
+        | " " -> () // dispatch Fire
+        | _ -> ())
 
 Canvas.Start("canvas", init(), Tick, update, view, subscribe)
 
