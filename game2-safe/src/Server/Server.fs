@@ -17,10 +17,20 @@ let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/publi
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
 let port = 8085us
 
-let getInitCounter() : Task<Counter> = task { return 42 }
+let getHighScores() : Task<_> =
+    task {
+        return
+            [
+                "alfonsogarciacaro", 100
+                "whitetigle", 80
+                "MangelMaxime", 79
+                "theimowski", 28
+                "(anonymous)", 28
+            ]
+    }
 
 let counterApi = {
-    initialCounter = getInitCounter >> Async.AwaitTask
+    getHighScores = getHighScores >> Async.AwaitTask
 }
 
 let webApp =

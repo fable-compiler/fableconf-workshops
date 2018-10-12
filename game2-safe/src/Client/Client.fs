@@ -16,10 +16,10 @@ module Server =
     open Fable.Remoting.Client
 
     /// A proxy you can use to talk to server directly
-    let api : ICounterApi =
+    let api : IGameApi =
       Remoting.createApi()
       |> Remoting.withRouteBuilder Route.builder
-      |> Remoting.buildProxy<ICounterApi>
+      |> Remoting.buildProxy<IGameApi>
 
 module Literals =
     let [<Literal>] BALL_RADIUS = 120.
@@ -118,3 +118,13 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.style.background <- "black"
 
 Canvas.Start("canvas", init(), Tick, update, view, subscribe)
+
+async {
+    let! highScores = Server.api.getHighScores ()
+    let scores = Browser.document.getElementById "scores"
+    let ol = scores.appendChild (Browser.document.createElement "ol")
+    for (score, name) in highScores do
+        let li = Browser.document.createElement "li"
+        li.innerText <- sprintf "%s: %d" score name
+        ol.appendChild li |> ignore
+} |> Async.StartImmediate
