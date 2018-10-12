@@ -48,6 +48,11 @@ let matter: Matter.IExports = importAll "matter-js"
 let inline (~%%) x = jsOptions x
 
 [<RequireQualifiedAccess>]
+type Dir =
+    | Left
+    | Right
+
+[<RequireQualifiedAccess>]
 module Physics =
     let inline vector x y: Matter.Vector = %%(fun o ->
         o.x <- x
@@ -61,9 +66,24 @@ module Physics =
     let inline square x y size =
         matter.Bodies.rectangle(x, y, size, size)
 
+    let ball (level: int) dir x y =
+        let level = float level
+        let radius = BALL_RADIUS / (float level |> sqrt)
+        let forceX =
+            (match dir with Dir.Left -> BALL_X_FORCE * -1. | _ -> BALL_X_FORCE) / level
+        let ball = matter.Bodies.circle(x, y, radius, %%(fun o ->
+            o.label <- Some (sprintf "BALL%.0f" level)
+            o.restitution <- Some 1.
+            o.friction <- Some 0.
+            o.frictionAir <- Some 0.
+        ))
+        matter.Body.applyForce(ball, vector x y, vector forceX (BALL_Y_FORCE / level))
+        ball
+
     let init () =
         let engine = matter.Engine.create()
         let player = square 0. 400. PLAYER_SIZE
+        let balls = [| ball 1 Dir.Right 0. -200. |]
         let walls = [|
             wall 0. WORLD_BOUND_UPPER WORLD_WIDTH 50. // ceiling
             wall WORLD_BOUND_RIGHT 0. 50. 1050. // right wall
@@ -72,17 +92,12 @@ module Physics =
         |]
         matter.World.add(
             engine.world,
-            !^[| yield player; yield! walls |]) |> ignore
+            !^[| yield player; yield! balls; yield! walls |]) |> ignore
 
-        engine, player
+        engine, player, balls
 
     let update (engine: Matter.Engine) (delta: float): unit =
         matter.Engine.update(engine, delta) |> ignore
-
-[<RequireQualifiedAccess>]
-type Dir =
-    | Left
-    | Right
 
 
 type Point =
@@ -110,6 +125,7 @@ type Section =
 type Model =
     { Engine : Matter.Engine
       Player : Matter.Body
+      Balls : Matter.Body[]
       MoveDir : Dir option
       Harpoon : Section option }
 
@@ -119,9 +135,10 @@ type Msg =
     | Fire
 
 let init () =
-    let engine, player = Physics.init ()
+    let engine, player, balls = Physics.init ()
     { Engine = engine
       Player = player
+      Balls = balls
       MoveDir = None
       Harpoon = None }
 
@@ -174,6 +191,9 @@ let update (model: Model) = function
                   End = _end }
             { model with Harpoon = Some harpoon }
 
+let renderCircle (ctx: Context) style (ball: Matter.Body) =
+    Canvas.Circle(ctx, style, ball.position.x, ball.position.y, ball.circleRadius)
+
 let renderShape (ctx: Context) style (shape: Matter.Body) =
     let vertices = shape.vertices |> Array.map (fun v -> v.x, v.y)
     Canvas.Shape(ctx, style, vertices)
@@ -205,6 +225,10 @@ let view (model : Model) (ctx: Context) _ =
     | Some harpoon ->
         renderSquare ctx !^"yellow" HARPOON_TIP_SIZE (Point.toTuple harpoon.End)
         renderLine ctx !^"white" (Point.toTuple harpoon.Start) (Point.toTuple harpoon.End)
+
+    // Draw balls
+    for ball in model.Balls do
+        renderCircle ctx !^"red" ball
 
     ctx.restore()
 
