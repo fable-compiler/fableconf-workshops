@@ -17,20 +17,34 @@ let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/publi
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
 let port = 8085us
 
+let highScores = System.Collections.Concurrent.ConcurrentBag<_>(
+    [
+        "alfonsogarciacaro", 5
+        "whitetigle", 4
+        "MangelMaxime", 3
+        "theimowski", 2
+        "(anonymous)", 1
+    ]
+)
+
 let getHighScores() : Task<_> =
     task {
         return
-            [
-                "alfonsogarciacaro", 100
-                "whitetigle", 80
-                "MangelMaxime", 79
-                "theimowski", 28
-                "(anonymous)", 28
-            ]
+            highScores
+            |> Seq.toList
+            |> List.sortByDescending snd
+            |> List.take 5
+    }
+
+let submitHighScore (name, score) : Task <_> =
+    task {
+        highScores.Add (name, score)
+        return! getHighScores ()
     }
 
 let counterApi = {
     getHighScores = getHighScores >> Async.AwaitTask
+    submitHighScore = submitHighScore >> Async.AwaitTask
 }
 
 let webApp =

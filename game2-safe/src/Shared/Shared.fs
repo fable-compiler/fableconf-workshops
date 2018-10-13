@@ -5,4 +5,5 @@ module Route =
         sprintf "/api/%s/%s" typeName methodName
 
 type IGameApi =
-    { getHighScores : unit -> Async<(string * int) list> }
+    { getHighScores : unit -> Async<(string * int) list>
+      submitHighScore : string * int -> Async<(string * int) list> }

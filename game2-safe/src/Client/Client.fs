@@ -135,6 +135,7 @@ type Model =
       Balls : Matter.Body[]
       MoveDir : Dir option
       Score : int
+      HighScores : (string * int) list
       Harpoon : Section option
       State : GameState }
 
@@ -144,7 +145,7 @@ type Msg =
     | Fire
     | Collision of Matter.IPair
 
-let init () =
+let init (scores) =
     let engine, player, balls = Physics.init ()
     { Engine = engine
       Player = player
@@ -152,6 +153,7 @@ let init () =
       State = Playing
       MoveDir = None
       Score = 0
+      HighScores = scores
       Harpoon = None }
 
 let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
@@ -174,10 +176,34 @@ let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
         Physics.ball level Dir.Left ball.position.x ball.position.y
     [| first; second |]
 
+let renderHighScores highScores =
+    let scores = Browser.document.getElementById "scores"
+    match scores.children.[0] with
+    | null -> ()
+    | ol -> scores.removeChild ol |> ignore
+    let ol = scores.appendChild (Browser.document.createElement "ol")
+    for (score, name) in highScores do
+        let li = Browser.document.createElement "li"
+        li.innerText <- sprintf "%s: %d" score name
+        ol.appendChild li |> ignore
+
+
 let update (model: Model) = function
     | _ when model.State = GameOver ->
         model
     | Collision (OneIs model.Player (Ball _)) ->
+        async {
+            let! highScores = Server.api.getHighScores ()
+            let lowest = highScores.Item (highScores.Length - 1) |> snd
+            if model.Score >= lowest then
+            let name =
+                Browser.window.prompt
+                    ((sprintf "High score: %d. Your name:"  model.Score),
+                    "(anonymous")
+            let! highScores = Server.api.submitHighScore (name, model.Score)
+            renderHighScores highScores
+        } |> Async.StartImmediate
+        
         { model with State = GameOver }
     | Collision _ ->
         model
@@ -332,14 +358,8 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
         for pair in ev.pairs do
             Collision pair |> dispatch)
 
-Canvas.Start("canvas", init(), Tick, update, view, subscribe)
-
 async {
     let! highScores = Server.api.getHighScores ()
-    let scores = Browser.document.getElementById "scores"
-    let ol = scores.appendChild (Browser.document.createElement "ol")
-    for (score, name) in highScores do
-        let li = Browser.document.createElement "li"
-        li.innerText <- sprintf "%s: %d" score name
-        ol.appendChild li |> ignore
+    Canvas.Start("canvas", init highScores, Tick, update, view, subscribe)
+    renderHighScores highScores
 } |> Async.StartImmediate
