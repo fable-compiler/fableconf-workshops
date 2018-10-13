@@ -301,6 +301,13 @@ let view (model : Model) (ctx: Context) _ =
     for ball in model.Balls do
         renderCircle ctx !^"red" ball
 
+    // Draw state
+    match model.State with
+    | Playing ->
+        Canvas.Text(ctx, !^"white", sprintf "SCORE: %d" model.Score, 0., TEXT_POSITION)
+    | GameOver ->
+        Canvas.Text(ctx, !^"white", sprintf "GAME OVER, SCORE: %d" model.Score, 0., TEXT_POSITION)
+
     ctx.restore()
 
 let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
