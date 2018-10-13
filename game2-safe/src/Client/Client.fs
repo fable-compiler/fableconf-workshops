@@ -80,6 +80,9 @@ module Physics =
         matter.Body.applyForce(ball, vector x y, vector forceX (BALL_Y_FORCE / level))
         ball
 
+    let castRay bodies (x1, y1) (x2, y2) =
+        matter.Query.ray(bodies, vector x1 y1, vector x2 y2)
+
     let init () =
         let engine = matter.Engine.create()
         let player = square 0. 400. PLAYER_SIZE
@@ -131,6 +134,7 @@ type Model =
       Player : Matter.Body
       Balls : Matter.Body[]
       MoveDir : Dir option
+      Score : int
       Harpoon : Section option
       State : GameState }
 
@@ -147,6 +151,7 @@ let init () =
       Balls = balls
       State = Playing
       MoveDir = None
+      Score = 0
       Harpoon = None }
 
 let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
@@ -161,12 +166,20 @@ let (|Ball|_|) (body: Matter.Body) =
     then int body.label.[4..] |> Some
     else None
 
+let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
+    let level = level * 2
+    let first =
+        Physics.ball level Dir.Right ball.position.x ball.position.y
+    let second =
+        Physics.ball level Dir.Left ball.position.x ball.position.y
+    [| first; second |]
+
 let update (model: Model) = function
+    | _ when model.State = GameOver ->
+        model
     | Collision (OneIs model.Player (Ball _)) ->
         { model with State = GameOver }
     | Collision _ ->
-        model
-    | Tick _ when model.State = GameOver ->
         model
     | Tick delta ->
         // Move player
@@ -183,20 +196,53 @@ let update (model: Model) = function
                 model.Player.position,
                 Physics.vector PLAYER_X_FORCE 0.)
 
-        let newHarpoon =
+        let balls, score, newHarpoon =
             match model.Harpoon with
-            | None -> None
+            | None -> model.Balls, model.Score, None
             | Some harpoon ->
+                // Check if harpoon string touches any ball
+                let collisions =
+                    Physics.castRay
+                        model.Balls
+                        (Point.toTuple harpoon.Start)
+                        (Point.toTuple harpoon.End)
+                let (balls, score), removeHarpoon =
+                    if collisions.Length = 0
+                    then (model.Balls, model.Score), false
+                    else
+                        ((model.Balls, model.Score), collisions) ||> Array.fold (fun (balls, score) col ->
+                            match col.bodyA with
+                            | Ball level as ball ->
+                                let splitBalls =
+                                    handleBallShot level ball balls
+
+                                let newBalls =
+                                    balls
+                                    |> Array.filter ((<>) ball)
+                                    |> Array.append splitBalls
+
+                                matter.Composite.remove(
+                                    model.Engine.world, !^ball) |> ignore
+                                matter.World.add(
+                                    model.Engine.world, !^splitBalls) |> ignore
+
+                                (newBalls, score + splitBalls.Length / 2)
+                            | _ -> (balls, score)), true
+
                 if harpoon.End.Y <= WORLD_BOUND_UPPER then
-                    None
+                    balls, score, None
+                elif removeHarpoon then
+                    balls, score, None
                 else
                     let harpoonEnd =
                         harpoon.End |> Point.moveVert (- HARPOON_STEP)
-                    Some { harpoon with End = harpoonEnd }
+                    balls, score, Some { harpoon with End = harpoonEnd }
 
         Physics.update model.Engine delta
         { model with
-            Harpoon = newHarpoon }
+            Harpoon = newHarpoon
+            Balls = balls
+            Score = score }
     | Move dir ->
         { model with MoveDir = dir }
     | Fire ->
