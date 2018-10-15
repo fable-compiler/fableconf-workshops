@@ -4,6 +4,9 @@ module Route =
     let builder typeName methodName =
         sprintf "/api/%s/%s" typeName methodName
 
+type Score = string * int
+type HighScores = Score list
+
 type IGameApi =
-    { getHighScores : unit -> Async<(string * int) list>
-      submitHighScore : string * int -> Async<(string * int) list> }
+    { getHighScores : unit -> Async<HighScores>
+      submitHighScore : Score -> Async<HighScores> }

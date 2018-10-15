@@ -17,28 +17,27 @@ let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/publi
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
 let port = 8085us
 
-let highScores = System.Collections.Concurrent.ConcurrentBag<_>(
-    [
-        "alfonsogarciacaro", 5
-        "whitetigle", 4
-        "MangelMaxime", 3
-        "theimowski", 2
-        "(anonymous)", 1
-    ]
-)
+let highScores =
+    System.Collections.Concurrent.ConcurrentBag<(string * int)>()
 
-let getHighScores() : Task<_> =
+highScores.Add("beat me !", 1)
+
+module List =
+    let limit n (xs : list<_>) =
+        if xs.Length > n then List.take n xs else xs
+
+let getHighScores() : Task<HighScores> =
     task {
         return
             highScores
             |> Seq.toList
             |> List.sortByDescending snd
-            |> List.take 5
+            |> List.limit 10
     }
 
-let submitHighScore (name, score) : Task <_> =
+let submitHighScore (newScore : Score) : Task<HighScores> =
     task {
-        highScores.Add (name, score)
+        highScores.Add newScore
         return! getHighScores ()
     }
 

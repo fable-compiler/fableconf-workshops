@@ -135,7 +135,7 @@ type Model =
       Balls : Matter.Body[]
       MoveDir : Dir option
       Score : int
-      HighScores : (string * int) list
+      HighScores : HighScores
       Harpoon : Section option
       State : GameState }
 
@@ -176,15 +176,15 @@ let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
         Physics.ball level Dir.Left ball.position.x ball.position.y
     [| first; second |]
 
-let renderHighScores highScores =
+let renderHighScores (highScores : HighScores) =
     let scores = Browser.document.getElementById "scores"
     match scores.children.[0] with
     | null -> ()
     | ol -> scores.removeChild ol |> ignore
     let ol = scores.appendChild (Browser.document.createElement "ol")
-    for (score, name) in highScores do
+    for (name, score) in highScores |> Seq.sortByDescending snd do
         let li = Browser.document.createElement "li"
-        li.innerText <- sprintf "%s: %d" score name
+        li.innerText <- sprintf "%s: %d points" name score
         ol.appendChild li |> ignore
 
 
@@ -194,16 +194,19 @@ let update (model: Model) = function
     | Collision (OneIs model.Player (Ball _)) ->
         async {
             let! highScores = Server.api.getHighScores ()
-            let lowest = highScores.Item (highScores.Length - 1) |> snd
-            if model.Score >= lowest then
-            let name =
-                Browser.window.prompt
-                    ((sprintf "High score: %d. Your name:"  model.Score),
-                    "(anonymous")
-            let! highScores = Server.api.submitHighScore (name, model.Score)
-            renderHighScores highScores
+            let lowest =
+                highScores
+                |> Seq.minBy snd
+                |> snd
+            if model.Score > lowest then
+                let name =
+                    Browser.window.prompt
+                        ((sprintf "High score: %d. Your name:"  model.Score),
+                        "(anonymous)")
+                let! highScores = Server.api.submitHighScore (name, model.Score)
+                renderHighScores highScores
         } |> Async.StartImmediate
-        
+
         { model with State = GameOver }
     | Collision _ ->
         model
