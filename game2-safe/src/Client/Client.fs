@@ -194,11 +194,16 @@ let update (model: Model) = function
     | Collision (OneIs model.Player (Ball _)) ->
         async {
             let! highScores = Server.api.getHighScores ()
-            let lowest =
-                highScores
-                |> Seq.minBy snd
-                |> snd
-            if model.Score > lowest then
+            let isHighScore =
+                if highScores.Length < 10 then
+                    model.Score > 0
+                else
+                    let lowest =
+                        highScores
+                        |> Seq.minBy snd
+                        |> snd
+                    model.Score > lowest
+            if isHighScore then
                 let name =
                     Browser.window.prompt
                         ((sprintf "High score: %d. Your name:"  model.Score),
