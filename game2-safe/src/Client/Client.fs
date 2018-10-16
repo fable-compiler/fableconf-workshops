@@ -344,6 +344,30 @@ let view (model : Model) (ctx: Context) _ =
 
     ctx.restore()
 
+
+// Touch / Mouse listeners
+[<Emit("$0 in $1")>]
+let checkIn (listener: string) (o: obj) : bool = jsNative
+
+let setTouchListener (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
+  if (checkIn "ontouchstart" canvas) then
+    // Capture touchstart for mobile / touch devices
+    canvas.addEventListener_touchstart(fun e ->
+        let ev = e.changedTouches.Item 0
+        let diff = ev.pageX - model.Player.position.x
+        if diff < 0. then Move (Some Dir.Left) |> dispatch
+        elif diff > 0. then Move (Some Dir.Right) |> dispatch)
+  else
+      // Capture mousedown for browsers
+      canvas.addEventListener_mousedown(fun ev ->
+        let diff = ev.pageX - model.Player.position.x
+        if diff < 0. then Move (Some Dir.Left) |> dispatch
+        elif diff > 0. then Move (Some Dir.Right) |> dispatch)
+
+      canvas.addEventListener_mouseup(fun ev ->
+        Move None |> dispatch)
+  |> ignore
+
 let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.width <- CANVAS_WIDTH
     canvas.height <- CANVAS_HEIGHT
@@ -361,6 +385,8 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
         | "arrowleft" | "arrowright" -> Move None |> dispatch
         | " " -> dispatch Fire
         | _ -> ())
+
+    setTouchListener canvas dispatch model
 
     matter.Events.on_collisionStart(model.Engine, fun ev ->
         for pair in ev.pairs do
