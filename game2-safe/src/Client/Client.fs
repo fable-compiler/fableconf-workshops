@@ -31,8 +31,13 @@ module Literals =
     let [<Literal>] HARPOON_STEP = 8.
     let [<Literal>] WORLD_WIDTH = 1000.
     let [<Literal>] WORLD_HEIGHT = 1000.
-    let [<Literal>] CANVAS_WIDTH = 600.
-    let [<Literal>] CANVAS_HEIGHT = 600.
+
+    let CANVAS_WIDTH, CANVAS_HEIGHT =
+        if Browser.window.innerWidth < 600. then
+            let w = Browser.window.innerWidth
+            w - 30., w - 30.
+        else
+            600. , 600.
 
     let WORLD_BOUND_UPPER = - (WORLD_HEIGHT / 2.)
     let WORLD_BOUND_LOWER = WORLD_HEIGHT / 2.
@@ -353,10 +358,22 @@ let setTouchListener (canvas: Browser.HTMLCanvasElement) dispatch (model : Model
   if (checkIn "ontouchstart" canvas) then
     // Capture touchstart for mobile / touch devices
     canvas.addEventListener_touchstart(fun e ->
+        e.preventDefault ()
+//        Browser.window.console.log e.touches
         let ev = e.changedTouches.Item 0
-        let diff = ev.pageX - model.Player.position.x
-        if diff < 0. then Move (Some Dir.Left) |> dispatch
-        elif diff > 0. then Move (Some Dir.Right) |> dispatch)
+        if ev.clientX < CANVAS_WIDTH / 3. then
+            Move (Some Dir.Left) |> dispatch
+        elif ev.clientX < CANVAS_WIDTH / 3. * 2. then
+            dispatch Fire
+        else
+            Move (Some Dir.Right) |> dispatch)
+
+
+    canvas.addEventListener_touchend(fun e ->
+        e.preventDefault()
+        dispatch (Move None))
+
+
   else
       // Capture mousedown for browsers
       canvas.addEventListener_mousedown(fun ev ->
@@ -366,6 +383,19 @@ let setTouchListener (canvas: Browser.HTMLCanvasElement) dispatch (model : Model
 
       canvas.addEventListener_mouseup(fun ev ->
         Move None |> dispatch)
+
+      Browser.window.addEventListener_keydown(fun ev ->
+          match ev.key.ToLower() with
+          | "arrowleft" -> Move (Some Dir.Left) |> dispatch
+          | "arrowright" -> Move (Some Dir.Right) |> dispatch
+          | " " -> ev.preventDefault ()
+          | _ -> ())
+
+      Browser.window.addEventListener_keyup(fun ev ->
+          match ev.key.ToLower() with
+          | "arrowleft" | "arrowright" -> Move None |> dispatch
+          | " " -> dispatch Fire
+          | _ -> ())
   |> ignore
 
 let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
@@ -373,18 +403,6 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.height <- CANVAS_HEIGHT
     canvas.style.background <- "black"
 
-    Browser.window.addEventListener_keydown(fun ev ->
-        match ev.key.ToLower() with
-        | "arrowleft" -> Move (Some Dir.Left) |> dispatch
-        | "arrowright" -> Move (Some Dir.Right) |> dispatch
-        | " " -> ev.preventDefault ()
-        | _ -> ())
-
-    Browser.window.addEventListener_keyup(fun ev ->
-        match ev.key.ToLower() with
-        | "arrowleft" | "arrowright" -> Move None |> dispatch
-        | " " -> dispatch Fire
-        | _ -> ())
 
     setTouchListener canvas dispatch model
 
