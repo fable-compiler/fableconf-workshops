@@ -22,12 +22,33 @@
 			#canvas {
 				border: 5px solid white;
 			}
+            #controls {
+                margin-top: 5px;
+            }
+            .control-button {
+                color: red;
+                background: white;
+                height: 80px;
+                width: 80px;
+                font-size: 24px;
+            }
 		</style>
 	</head>
 	<body>
         <h1>Fable PANG!</h1>
         <div id="canvas-container">
             <canvas id="canvas"></canvas>
+        </div>
+        <div id="controls">
+            <div style="float: left">
+                <button id="left" class="control-button">&lt;&lt;</button>
+            </div>
+            <div style="float: right">
+                <button id="right" class="control-button">&gt;&gt;</button>
+            </div>
+            <div style="margin: 0 auto; width: 80px;">
+                <button id="fire" class="control-button">FIRE</button>
+            </div>
         </div>
         <h2>High scores</h2>
         <div id="scores">

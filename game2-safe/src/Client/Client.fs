@@ -211,8 +211,8 @@ let update (model: Model) = function
             if isHighScore then
                 let name =
                     Browser.window.prompt
-                        ((sprintf "High score: %d. Your name:"  model.Score),
-                        "(anonymous)")
+                        ((sprintf "High score: %d! Type in your name:" model.Score))
+                let name = if String.IsNullOrEmpty name then "(anonymous)" else name
                 let! highScores = Server.api.submitHighScore (name, model.Score)
                 renderHighScores highScores
         } |> Async.StartImmediate
@@ -354,36 +354,28 @@ let view (model : Model) (ctx: Context) _ =
 [<Emit("$0 in $1")>]
 let checkIn (listener: string) (o: obj) : bool = jsNative
 
-let setTouchListener (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
-  if (checkIn "ontouchstart" canvas) then
-    // Capture touchstart for mobile / touch devices
-    canvas.addEventListener_touchstart(fun e ->
-        e.preventDefault ()
-//        Browser.window.console.log e.touches
-        let ev = e.changedTouches.Item 0
-        if ev.clientX < CANVAS_WIDTH / 3. then
-            Move (Some Dir.Left) |> dispatch
-        elif ev.clientX < CANVAS_WIDTH / 3. * 2. then
-            dispatch Fire
-        else
-            Move (Some Dir.Right) |> dispatch)
 
+let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
+    canvas.width <- CANVAS_WIDTH
+    canvas.height <- CANVAS_HEIGHT
+    canvas.style.background <- "black"
 
-    canvas.addEventListener_touchend(fun e ->
-        e.preventDefault()
-        dispatch (Move None))
+    let left = Browser.document.getElementById "left"
+    let right = Browser.document.getElementById "right"
+    let fire = Browser.document.getElementById "fire"
 
-
-  else
-      // Capture mousedown for browsers
-      canvas.addEventListener_mousedown(fun ev ->
-        let diff = ev.pageX - model.Player.position.x
-        if diff < 0. then Move (Some Dir.Left) |> dispatch
-        elif diff > 0. then Move (Some Dir.Right) |> dispatch)
-
-      canvas.addEventListener_mouseup(fun ev ->
-        Move None |> dispatch)
-
+    if (checkIn "ontouchstart" left) then
+        left.addEventListener_touchstart (fun _ ->
+            dispatch (Move (Some Dir.Left)))
+        right.addEventListener_touchstart (fun _ ->
+            dispatch (Move (Some Dir.Right)))
+        left.addEventListener_touchend (fun _ ->
+            dispatch (Move None))
+        right.addEventListener_touchend (fun _ ->
+            dispatch (Move None))
+        fire.addEventListener_click (fun _ ->
+            dispatch Fire)
+    else
       Browser.window.addEventListener_keydown(fun ev ->
           match ev.key.ToLower() with
           | "arrowleft" -> Move (Some Dir.Left) |> dispatch
@@ -396,15 +388,6 @@ let setTouchListener (canvas: Browser.HTMLCanvasElement) dispatch (model : Model
           | "arrowleft" | "arrowright" -> Move None |> dispatch
           | " " -> dispatch Fire
           | _ -> ())
-  |> ignore
-
-let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
-    canvas.width <- CANVAS_WIDTH
-    canvas.height <- CANVAS_HEIGHT
-    canvas.style.background <- "black"
-
-
-    setTouchListener canvas dispatch model
 
     matter.Events.on_collisionStart(model.Engine, fun ev ->
         for pair in ev.pairs do

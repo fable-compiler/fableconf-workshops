@@ -73,11 +73,6 @@ let addScore (score : string * int) =
 
 let port = 8085us
 
-let highScores =
-    System.Collections.Concurrent.ConcurrentBag<(string * int)>()
-
-highScores.Add("beat me !", 1)
-
 module List =
     let limit n (xs : list<_>) =
         if xs.Length > n then List.take n xs else xs
