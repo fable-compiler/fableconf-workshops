@@ -364,6 +364,13 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     let right = Browser.document.getElementById "right"
     let fire = Browser.document.getElementById "fire"
 
+    let buttonWidth = sprintf "%fpx" (CANVAS_WIDTH / 3.)
+
+    left.style.width <- buttonWidth
+    right.style.width <- buttonWidth
+    fire.style.width <- buttonWidth
+    fire.parentElement.style.width <- buttonWidth
+
     if (checkIn "ontouchstart" left) then
         left.addEventListener_touchstart (fun _ ->
             dispatch (Move (Some Dir.Left)))
