@@ -93,7 +93,11 @@ let getHighScores() : Task<HighScores> =
 
 let submitHighScore (name, score) : Task<HighScores> =
     task {
-        return! addScore (name, score)
+        let! scores = addScore (name, score)
+        return
+            scores
+            |> List.sortByDescending snd
+            |> List.limit 10
     }
 
 let counterApi = {
