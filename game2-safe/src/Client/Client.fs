@@ -140,7 +140,7 @@ type Model =
       Balls : Matter.Body[]
       MoveDir : Dir option
       Score : int
-      HighScores : HighScores
+      HighScores : Scores
       Harpoon : Section option
       State : GameState }
 
@@ -181,7 +181,7 @@ let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
         Physics.ball level Dir.Left ball.position.x ball.position.y
     [| first; second |]
 
-let renderHighScores (highScores : HighScores) =
+let renderHighScores (highScores : Scores) =
     let scores = Browser.document.getElementById "scores"
     match scores.children.[0] with
     | null -> ()

@@ -3,7 +3,6 @@ open System.IO
 open System.Threading.Tasks
 open System.Text
 
-open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.DependencyInjection
 open FSharp.Control.Tasks.V2
 open Giraffe
@@ -13,86 +12,73 @@ open Shared
 open Fable.Remoting.Server
 open Fable.Remoting.Giraffe
 open Microsoft.WindowsAzure.Storage
-open Microsoft.WindowsAzure.Storage.Table
 open Microsoft.WindowsAzure.Storage.Blob
 open Newtonsoft.Json
-open Microsoft.WindowsAzure.Storage
-open Microsoft.WindowsAzure.Storage
 
 let tryGetEnv = System.Environment.GetEnvironmentVariable >> function null | "" -> None | x -> Some x
 let publicPath = tryGetEnv "public_path" |> Option.defaultValue "../Client/public" |> Path.GetFullPath
 let storageAccount = tryGetEnv "STORAGE_CONNECTIONSTRING" |> Option.defaultValue "UseDevelopmentStorage=true" |> CloudStorageAccount.Parse
+let port = 8085us
 
 let blobClient = storageAccount.CreateCloudBlobClient()
-let guid = "151be5b4-3cb7-45b7-8737-65e08e8faf63"
-let blobRef = blobClient.GetContainerReference guid
+let containerName = "scores-container"
+let blobRef = blobClient.GetContainerReference containerName
+
+module Json =
+    open Fable.Remoting
+
+    let jsonConverter = Json.FableJsonConverter () :> JsonConverter
+    let serialize value = JsonConvert.SerializeObject(value, [|jsonConverter|])
+    let deserialize json = JsonConvert.DeserializeObject<_>(json, [|jsonConverter|])
 
 let blob =
     task {
         let! _ = blobRef.CreateIfNotExistsAsync ()
-        do! blobRef.SetPermissionsAsync
-                (BlobContainerPermissions(
-                    PublicAccess = BlobContainerPublicAccessType.Blob
-                ))
-        let file =
-            blobRef.GetBlockBlobReference "scores.json"
+        let file = blobRef.GetBlockBlobReference "scores.json"
         let! exists = file.ExistsAsync()
-        if not exists then
-            do! file.UploadTextAsync "[]"
+        if not exists then do! file.UploadTextAsync "[]"
         return file
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
 
-let jsonConverter = Fable.Remoting.Json.FableJsonConverter () :> JsonConverter
+let getScores () : Task<Scores> =
+    task {
+        let! json = blob.DownloadTextAsync()
+        return Json.deserialize json
+    }
 
 let leaseTime = TimeSpan.FromSeconds 15.
 
-let getScores () =
-    task {
-        let b = Array.zeroCreate 65536
-        let! count = blob.DownloadToByteArrayAsync(b, 0)
-        let json = Encoding.UTF8.GetString(b, 0, count)
-        return JsonConvert.DeserializeObject<HighScores>(json, [|jsonConverter|])
-    }
-
-let addScore (score : string * int) =
+let addScore (score : Score) =
     task {
         let! lease = blob.AcquireLeaseAsync(Nullable.op_Implicit leaseTime, null)
         let! scores = getScores ()
-        let scores = score :: scores
-        let json = JsonConvert.SerializeObject(scores, [|jsonConverter|])
-        let bytes = Encoding.UTF8.GetBytes json
-        let leaseCondition = AccessCondition.GenerateLeaseCondition(lease)
-        do! blob.UploadFromByteArrayAsync(
-                bytes, 0, bytes.Length,
-                leaseCondition, BlobRequestOptions(), OperationContext())
-        do! blob.ReleaseLeaseAsync(leaseCondition)
-        return scores
+        let newScores = score :: scores
+        let json = Json.serialize newScores
+        let condition = AccessCondition.GenerateLeaseCondition lease
+        do! blob.UploadTextAsync(json, condition, null, null)
+        do! blob.ReleaseLeaseAsync condition
+        return newScores
     }
 
-let port = 8085us
+let highScores (scores : Scores) : Scores =
+    let sorted = List.sortByDescending snd scores
+    if sorted.Length > HighScores.limit then
+        List.take HighScores.limit sorted
+    else
+        sorted
 
-module List =
-    let limit n (xs : list<_>) =
-        if xs.Length > n then List.take n xs else xs
-
-let getHighScores() : Task<HighScores> =
+let getHighScores() : Task<Scores> =
     task {
         let! scores = getScores()
-        return
-            scores
-            |> List.sortByDescending snd
-            |> List.limit 10
+        return highScores scores
     }
 
-let submitHighScore (name, score) : Task<HighScores> =
+let submitHighScore (name, score) : Task<Scores> =
     task {
         let! scores = addScore (name, score)
-        return
-            scores
-            |> List.sortByDescending snd
-            |> List.limit 10
+        return highScores scores
     }
 
 let counterApi = {
