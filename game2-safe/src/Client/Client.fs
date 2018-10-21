@@ -193,7 +193,7 @@ let renderHighScores (highScores : HighScores) =
         ol.appendChild li |> ignore
 
 
-let update (model: Model) = function
+let update (reset) (model: Model) = function
     | _ when model.State = GameOver ->
         model
     | Collision (OneIs model.Player (Ball _)) ->
@@ -215,6 +215,9 @@ let update (model: Model) = function
                 let name = if String.IsNullOrEmpty name then "(anonymous)" else name
                 let! highScores = Server.api.submitHighScore (name, model.Score)
                 renderHighScores highScores
+                reset highScores
+            else
+                reset highScores
         } |> Async.StartImmediate
 
         { model with State = GameOver }
@@ -400,8 +403,11 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
         for pair in ev.pairs do
             Collision pair |> dispatch)
 
+let rec reset (highScores) =
+    Canvas.Start("canvas", init highScores, Tick, update reset, view, subscribe)
+
 async {
     let! highScores = Server.api.getHighScores ()
-    Canvas.Start("canvas", init highScores, Tick, update, view, subscribe)
+    reset (highScores)
     renderHighScores highScores
 } |> Async.StartImmediate
