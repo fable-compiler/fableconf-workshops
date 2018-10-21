@@ -39,12 +39,8 @@ module Point =
 
     let toTuple (p : Point) = p.X, p.Y
 
-    let move (p : Point) (vector : Point) =
-        { X = p.X + vector.X
-          Y = p.Y + vector.Y }
-
     let moveVert (y : float) (p : Point) =
-        move p { X = 0.; Y = y }
+        { p with Y = p.Y + y }
 
 type Section =
     { Start : Point
@@ -79,18 +75,6 @@ let init () =
       Score = 0
       Harpoon = None }
 
-let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
-    if pair.bodyA = target
-    then Some pair.bodyB
-    elif pair.bodyB = target
-    then Some pair.bodyA
-    else None
-
-let (|Ball|_|) (body: Matter.Body) =
-    if body.label.StartsWith("BALL")
-    then int body.label.[4..] |> Some
-    else None
-
 let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
     let level = level * 2
     let first =
@@ -110,37 +94,40 @@ let renderHighScores (highScores : Scores) =
         li.innerText <- sprintf "%s: %d points" name score
         ol.appendChild li |> ignore
 
+let gameOver model reset =
+    async {
+        let! highScores = Server.api.getHighScores ()
+        let isHighScore =
+            if highScores.Length < 10 then
+                model.Score > 0
+            else
+                let lowest =
+                    highScores
+                    |> Seq.minBy snd
+                    |> snd
+                model.Score > lowest
+        if isHighScore then
+            let name =
+                Browser.window.prompt
+                    ((sprintf "High score: %d! Type in your name:" model.Score))
+            let name = if String.IsNullOrEmpty name then "(anonymous)" else name
+            let! highScores = Server.api.submitHighScore (name, model.Score)
+            renderHighScores highScores
+            reset ()
+        else
+            reset ()
+    } |> Async.StartImmediate
 
 let update (reset) (model: Model) = function
     | _ when model.State = GameOver ->
         model
-    | Collision (OneIs model.Player (Ball _)) ->
-        async {
-            let! highScores = Server.api.getHighScores ()
-            let isHighScore =
-                if highScores.Length < 10 then
-                    model.Score > 0
-                else
-                    let lowest =
-                        highScores
-                        |> Seq.minBy snd
-                        |> snd
-                    model.Score > lowest
-            if isHighScore then
-                let name =
-                    Browser.window.prompt
-                        ((sprintf "High score: %d! Type in your name:" model.Score))
-                let name = if String.IsNullOrEmpty name then "(anonymous)" else name
-                let! highScores = Server.api.submitHighScore (name, model.Score)
-                renderHighScores highScores
-                reset ()
-            else
-                reset ()
-        } |> Async.StartImmediate
-
-        { model with State = GameOver }
-    | Collision _ ->
-        model
+    | Collision pair ->
+        if (pair.bodyA = model.Player && Physics.isBall pair.bodyB) ||
+           (pair.bodyB = model.Player && Physics.isBall pair.bodyA) then
+           gameOver model reset
+           { model with State = GameOver }
+        else
+            model
     | Tick delta ->
         // Move player
         match model.MoveDir with
@@ -172,7 +159,7 @@ let update (reset) (model: Model) = function
                     else
                         ((model.Balls, model.Score), collisions) ||> Array.fold (fun (balls, score) col ->
                             match col.bodyA with
-                            | Ball level as ball ->
+                            | Physics.Ball level as ball ->
                                 let splitBalls =
                                     handleBallShot level ball balls
 

@@ -56,6 +56,14 @@ let ball (level: int) forceX x y =
     matter.Body.applyForce(ball, vector x y, vector (forceX / level) (BALL_Y_FORCE / level))
     ball
 
+let (|Ball|_|) (body: Matter.Body) =
+    if body.label.StartsWith("BALL")
+    then int body.label.[4..] |> Some
+    else None
+
+let isBall = function Ball _ -> true | _ -> false
+
+
 let castRay bodies (x1, y1) (x2, y2) =
     matter.Query.ray(bodies, vector x1 y1, vector x2 y2)
 
