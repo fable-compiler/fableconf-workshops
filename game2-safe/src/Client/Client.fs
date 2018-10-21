@@ -28,7 +28,6 @@ type Dir =
     | Left
     | Right
 
-
 type Point =
     { X : float
       Y : float }
@@ -61,7 +60,6 @@ type Model =
       Balls : Matter.Body[]
       MoveDir : Dir option
       Score : int
-      HighScores : Scores
       Harpoon : Section option
       State : GameState }
 
@@ -71,7 +69,7 @@ type Msg =
     | Fire
     | Collision of Matter.IPair
 
-let init (scores) =
+let init () =
     let engine, player, balls = Physics.init ()
     { Engine = engine
       Player = player
@@ -79,7 +77,6 @@ let init (scores) =
       State = Playing
       MoveDir = None
       Score = 0
-      HighScores = scores
       Harpoon = None }
 
 let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
@@ -136,9 +133,9 @@ let update (reset) (model: Model) = function
                 let name = if String.IsNullOrEmpty name then "(anonymous)" else name
                 let! highScores = Server.api.submitHighScore (name, model.Score)
                 renderHighScores highScores
-                reset highScores
+                reset ()
             else
-                reset highScores
+                reset ()
         } |> Async.StartImmediate
 
         { model with State = GameOver }
@@ -304,8 +301,8 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
         for pair in ev.pairs do
             Collision pair |> dispatch)
 
-let rec reset (highScores) =
-    Canvas.Start("canvas", init highScores, Tick, update reset, view, subscribe)
+let rec reset () =
+    Canvas.Start("canvas", init (), Tick, update reset, view, subscribe)
 
 [<Emit("$0 in $1")>]
 let checkIn (listener: string) (o: obj) : bool = jsNative
@@ -315,6 +312,6 @@ if not (checkIn "ontouchstart" Browser.window) then
 else
     async {
         let! highScores = Server.api.getHighScores ()
-        reset (highScores)
+        reset ()
         renderHighScores highScores
     } |> Async.StartImmediate
