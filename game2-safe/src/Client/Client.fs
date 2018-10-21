@@ -352,12 +352,6 @@ let view (model : Model) (ctx: Context) _ =
 
     ctx.restore()
 
-
-// Touch / Mouse listeners
-[<Emit("$0 in $1")>]
-let checkIn (listener: string) (o: obj) : bool = jsNative
-
-
 let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     canvas.width <- CANVAS_WIDTH
     canvas.height <- CANVAS_HEIGHT
@@ -374,30 +368,16 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
     fire.style.width <- buttonWidth
     fire.parentElement.style.width <- buttonWidth
 
-    if (checkIn "ontouchstart" left) then
-        left.addEventListener_touchstart (fun _ ->
-            dispatch (Move (Some Dir.Left)))
-        right.addEventListener_touchstart (fun _ ->
-            dispatch (Move (Some Dir.Right)))
-        left.addEventListener_touchend (fun _ ->
-            dispatch (Move None))
-        right.addEventListener_touchend (fun _ ->
-            dispatch (Move None))
-        fire.addEventListener_click (fun _ ->
-            dispatch Fire)
-    else
-      Browser.window.addEventListener_keydown(fun ev ->
-          match ev.key.ToLower() with
-          | "arrowleft" -> Move (Some Dir.Left) |> dispatch
-          | "arrowright" -> Move (Some Dir.Right) |> dispatch
-          | " " -> ev.preventDefault ()
-          | _ -> ())
-
-      Browser.window.addEventListener_keyup(fun ev ->
-          match ev.key.ToLower() with
-          | "arrowleft" | "arrowright" -> Move None |> dispatch
-          | " " -> dispatch Fire
-          | _ -> ())
+    left.addEventListener_touchstart (fun _ ->
+        dispatch (Move (Some Dir.Left)))
+    right.addEventListener_touchstart (fun _ ->
+        dispatch (Move (Some Dir.Right)))
+    left.addEventListener_touchend (fun _ ->
+        dispatch (Move None))
+    right.addEventListener_touchend (fun _ ->
+        dispatch (Move None))
+    fire.addEventListener_click (fun _ ->
+        dispatch Fire)
 
     matter.Events.on_collisionStart(model.Engine, fun ev ->
         for pair in ev.pairs do
@@ -406,8 +386,14 @@ let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
 let rec reset (highScores) =
     Canvas.Start("canvas", init highScores, Tick, update reset, view, subscribe)
 
-async {
-    let! highScores = Server.api.getHighScores ()
-    reset (highScores)
-    renderHighScores highScores
-} |> Async.StartImmediate
+[<Emit("$0 in $1")>]
+let checkIn (listener: string) (o: obj) : bool = jsNative
+
+if not (checkIn "ontouchstart" Browser.window) then
+    Browser.window.alert "Sorry, game is only for mobile!"
+else
+    async {
+        let! highScores = Server.api.getHighScores ()
+        reset (highScores)
+        renderHighScores highScores
+    } |> Async.StartImmediate
