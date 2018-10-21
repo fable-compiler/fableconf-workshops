@@ -1,0 +1,58 @@
+﻿<!doctype html>
+<html lang="en">
+	<head>
+		<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Fable PANG!</title>
+        <link rel="shortcut icon" type="image/png" href="/Images/safe_favicon.png"/>
+		<style>
+			html {
+				height: 100%;
+			}
+            body {
+                background: black;
+				height: 100%;
+                color: white;
+            }
+			#canvas-container {
+				display: flex;
+          		align-items: center;
+          		justify-content: center;
+			}
+			#canvas {
+				border: 5px solid white;
+			}
+            #controls {
+                margin-top: 5px;
+            }
+            .control-button {
+                color: red;
+                background: white;
+                height: 80px;
+                width: 80px;
+                font-size: 24px;
+            }
+		</style>
+	</head>
+	<body>
+        <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div id="controls">
+            <div style="float: left">
+                <button id="left" class="control-button">&lt;&lt;</button>
+            </div>
+            <div style="float: right">
+                <button id="right" class="control-button">&gt;&gt;</button>
+            </div>
+            <div style="margin: 0 auto">
+                <button id="fire" class="control-button">FIRE</button>
+            </div>
+        </div>
+        <h2>High scores</h2>
+        <div id="scores">
+        </div>
+		<script src="./js/vendors.js"></script>
+		<script src="./js/app.js"></script>
+	</body>
+</html>
