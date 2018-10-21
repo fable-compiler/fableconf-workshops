@@ -75,14 +75,6 @@ let init () =
       Score = 0
       Harpoon = None }
 
-let handleBallShot (level: int) (ball : Matter.Body) (balls : Matter.Body []) =
-    let level = level * 2
-    let first =
-        Physics.ball level BALL_X_FORCE ball.position.x ball.position.y
-    let second =
-        Physics.ball level -BALL_X_FORCE ball.position.x ball.position.y
-    [| first; second |]
-
 let renderHighScores (highScores : Scores) =
     let scores = Browser.document.getElementById "scores"
     match scores.children.[0] with
@@ -118,6 +110,59 @@ let gameOver model reset =
             reset ()
     } |> Async.StartImmediate
 
+let ballCollisions (model, collisions : Matter.ICollision array) =
+    (model.Balls, collisions)
+    ||> Array.fold (fun balls col ->
+        match col.bodyA with
+        | Physics.Ball level as ball ->
+            let splitBalls =
+                [| for x in [BALL_X_FORCE; -BALL_X_FORCE] ->
+                    Physics.ball (level * 2) x ball.position.x ball.position.y |]
+
+            Physics.matter.Composite.remove(
+                model.Engine.world, !^ball) |> ignore
+            Physics.matter.World.add(
+                model.Engine.world, !^splitBalls) |> ignore
+
+            let newBalls =
+                balls
+                |> Array.filter ((<>) ball)
+                |> Array.append splitBalls
+
+            newBalls
+        | _ -> balls)
+
+let moveHarpoon (harpoon) =
+    if harpoon.End.Y <= WORLD_BOUND_UPPER then None
+    else
+        let harpoonEnd = Point.moveVert (- HARPOON_STEP) harpoon.End
+        Some { harpoon with End = harpoonEnd }
+
+let onTick (model : Model) delta =
+    Physics.update model.Engine delta
+
+    // move player
+    match model.MoveDir with
+    | None -> ()
+    | Some dir ->
+        let x = match dir with Dir.Left -> -PLAYER_X_FORCE | Dir.Right -> PLAYER_X_FORCE
+        Physics.matter.Body.applyForce(model.Player, model.Player.position, Physics.vector x 0.)
+
+    match model.Harpoon with
+    | None ->
+        model
+    | Some harpoon ->
+        let collisions =
+            Physics.castRay model.Balls (Point.toTuple harpoon.Start) (Point.toTuple harpoon.End)
+
+        if collisions.Length = 0 then
+            { model with Harpoon = moveHarpoon harpoon }
+        else
+            { model with
+                Balls = ballCollisions (model, collisions)
+                Score = model.Score + collisions.Length
+                Harpoon = None }
+
 let update (reset) (model: Model) = function
     | _ when model.State = GameOver ->
         model
@@ -129,67 +174,7 @@ let update (reset) (model: Model) = function
         else
             model
     | Tick delta ->
-        // Move player
-        match model.MoveDir with
-        | None -> ()
-        | Some Dir.Left ->
-            Physics.matter.Body.applyForce(
-                model.Player,
-                model.Player.position,
-                Physics.vector -PLAYER_X_FORCE 0.)
-        | Some Dir.Right ->
-            Physics.matter.Body.applyForce(
-                model.Player,
-                model.Player.position,
-                Physics.vector PLAYER_X_FORCE 0.)
-
-        let balls, score, newHarpoon =
-            match model.Harpoon with
-            | None -> model.Balls, model.Score, None
-            | Some harpoon ->
-                // Check if harpoon string touches any ball
-                let collisions =
-                    Physics.castRay
-                        model.Balls
-                        (Point.toTuple harpoon.Start)
-                        (Point.toTuple harpoon.End)
-                let (balls, score), removeHarpoon =
-                    if collisions.Length = 0
-                    then (model.Balls, model.Score), false
-                    else
-                        ((model.Balls, model.Score), collisions) ||> Array.fold (fun (balls, score) col ->
-                            match col.bodyA with
-                            | Physics.Ball level as ball ->
-                                let splitBalls =
-                                    handleBallShot level ball balls
-
-                                let newBalls =
-                                    balls
-                                    |> Array.filter ((<>) ball)
-                                    |> Array.append splitBalls
-
-                                Physics.matter.Composite.remove(
-                                    model.Engine.world, !^ball) |> ignore
-                                Physics.matter.World.add(
-                                    model.Engine.world, !^splitBalls) |> ignore
-
-                                (newBalls, score + splitBalls.Length / 2)
-                            | _ -> (balls, score)), true
-
-                if harpoon.End.Y <= WORLD_BOUND_UPPER then
-                    balls, score, None
-                elif removeHarpoon then
-                    balls, score, None
-                else
-                    let harpoonEnd =
-                        harpoon.End |> Point.moveVert (- HARPOON_STEP)
-                    balls, score, Some { harpoon with End = harpoonEnd }
-
-        Physics.update model.Engine delta
-        { model with
-            Harpoon = newHarpoon
-            Balls = balls
-            Score = score }
+        onTick model delta
     | Move dir ->
         { model with MoveDir = dir }
     | Fire ->
@@ -227,8 +212,10 @@ let view (model : Model) (ctx: Context) _ =
         min
             (CANVAS_WIDTH / WORLD_WIDTH)
             (CANVAS_HEIGHT / WORLD_HEIGHT)
+
     ctx.clearRect(0., 0., CANVAS_WIDTH, CANVAS_HEIGHT)
     ctx.save()
+
     // Translate to the center
     ctx.translate(CANVAS_WIDTH / 2., CANVAS_HEIGHT / 2.)
     // Apply zoom

@@ -7,7 +7,7 @@ open Fable.Import
 module Consts =
     let [<Literal>] BALL_RADIUS = 120.
     let [<Literal>] BALL_X_FORCE = 1.
-    let [<Literal>] BALL_Y_FORCE = -1.
+    let [<Literal>] BALL_Y_FORCE = -1.5
     let [<Literal>] PLAYER_SIZE = 40.
     let [<Literal>] PLAYER_X_FORCE = 0.005
     let [<Literal>] HARPOON_TIP_SIZE = 16.
