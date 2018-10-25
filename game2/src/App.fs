@@ -16,8 +16,10 @@ module Literals =
     let [<Literal>] HARPOON_STEP = 8.
     let [<Literal>] WORLD_WIDTH = 1000.
     let [<Literal>] WORLD_HEIGHT = 1000.
+    let [<Literal>] CANVAS_ID = "canvas"
     let [<Literal>] CANVAS_WIDTH = 600.
     let [<Literal>] CANVAS_HEIGHT = 600.
+    let [<Literal>] CANVAS_BACKGROUND = "black"
 
     let WORLD_BOUND_UPPER = - (WORLD_HEIGHT / 2.)
     let WORLD_BOUND_LOWER = WORLD_HEIGHT / 2.
@@ -29,6 +31,7 @@ module Literals =
 open Literals
 
 let matter: Matter.IExports = importAll "matter-js"
+let clone(o: 'T): 'T = importMember "./util"
 
 let inline (~%%) x = jsOptions x
 
@@ -74,6 +77,11 @@ type Model =
       Harpoon: Section option
       MoveDir: Dir }
 
+type CacheModel =
+    { Balls : Matter.Body[]
+      Player: Matter.Body
+      Harpoon: Section option }
+
 type Msg =
     | Collision of Matter.IPair
     | Move of Dir
@@ -114,7 +122,20 @@ module Physics =
     let castRay bodies (x1, y1) (x2, y2) =
         matter.Query.ray(bodies, vector x1 y1, vector x2 y2)
 
-    let init () =
+    let resetWorld (model: Model) (cached: CacheModel) =
+        assert false
+        matter.World.clear(model.Engine.world, true)
+        matter.World.add(model.Engine.world, !^cached.Balls) |> ignore
+        matter.World.add(model.Engine.world, !^cached.Player) |> ignore
+        // TODO: State, Score?
+        { model with Balls = cached.Balls; Player = cached.Player; Harpoon = cached.Harpoon; MoveDir = Dir.None }
+
+    let cacheWorld (model: Model) =
+        { Balls = model.Balls |> Array.map clone
+          Player = clone model.Player
+          Harpoon = model.Harpoon }
+
+    let init dispatch (controls: CanvasControls<_,_>) =
         let engine = matter.Engine.create()
         let player = square 0. 400. PLAYER_SIZE
         let balls = [|ball 1 Dir.Right 0. -200.|]
@@ -127,6 +148,26 @@ module Physics =
         matter.World.add(engine.world, !^[| yield player
                                             yield! balls
                                             yield! walls |]) |> ignore
+
+        // Subscribe events
+        Browser.window.addEventListener_keydown(fun ev ->
+            match ev.key.ToLower() with
+            | "arrowleft" ->
+                if controls.IsPaused
+                then controls.RevertState(resetWorld)
+                else Move Dir.Left |> dispatch
+            | "arrowright" -> Move Dir.Right |> dispatch
+            | _ -> ())
+        Browser.window.addEventListener_keyup(fun ev ->
+            match ev.key.ToLower() with
+            | "arrowleft" | "arrowright" -> Move Dir.None |> dispatch
+            | " " -> dispatch Fire
+            | "p" -> controls.TogglePause()
+            | _ -> ())
+        matter.Events.on_collisionStart(engine, fun ev ->
+            for pair in ev.pairs do
+                Collision pair |> dispatch)
+
         { State = Playing
           Score = 0
           Engine = engine
@@ -139,8 +180,8 @@ module Physics =
     let update (model: Model) (delta: float): unit =
         matter.Engine.update(model.Engine, delta) |> ignore
 
-let init () =
-    Physics.init ()
+let initModel dispatch controls =
+    Physics.init dispatch controls
 
 let (|OneIs|_|) (target: Matter.Body) (pair: Matter.IPair) =
     if pair.bodyA = target
@@ -262,7 +303,7 @@ let renderSquare (ctx: Context) style size (x, y) =
 let renderLine (ctx: Context) style (x1, y1) (x2, y2) =
     Canvas.Line(ctx, style, x1, y1, x2, y2)
 
-let view (model : Model) (ctx: Context) _interpolationPercentage =
+let view (model : Model) (ctx: Context) =
     let zoom = min (CANVAS_WIDTH / WORLD_WIDTH) (CANVAS_HEIGHT / WORLD_HEIGHT)
     ctx.clearRect(0., 0., CANVAS_WIDTH, CANVAS_HEIGHT)
     ctx.save()
@@ -293,26 +334,12 @@ let view (model : Model) (ctx: Context) _interpolationPercentage =
     //     renderShape ctx !^"white" wall
     ctx.restore()
 
-let subscribe (canvas: Browser.HTMLCanvasElement) dispatch (model : Model) =
+let initCanvas () =
+    let canvas = Browser.document.getElementById(CANVAS_ID) :?> Browser.HTMLCanvasElement
     canvas.width <- CANVAS_WIDTH
     canvas.height <- CANVAS_HEIGHT
-    canvas.style.background <- "black"
-
-    Browser.window.addEventListener_keydown(fun ev ->
-        match ev.key.ToLower() with
-        | "arrowleft" -> Move Dir.Left |> dispatch
-        | "arrowright" -> Move Dir.Right |> dispatch
-        | _ -> ())
-
-    Browser.window.addEventListener_keyup(fun ev ->
-        match ev.key.ToLower() with
-        | "arrowleft" | "arrowright" -> Move Dir.None |> dispatch
-        | " " -> dispatch Fire
-        | _ -> ())
-
-    matter.Events.on_collisionStart(model.Engine, fun ev ->
-        for pair in ev.pairs do
-            Collision pair |> dispatch)
+    canvas.style.background <- CANVAS_BACKGROUND
+    canvas
 
 // App
-Canvas.Start("canvas", init(), Tick, update, view, subscribe)
+Canvas.Start(initCanvas, initModel, Physics.cacheWorld, Tick, update, view)
